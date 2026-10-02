@@ -153,8 +153,8 @@ form.add .row{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end;fle
 
 <section class="login" id="login" hidden>
   <h1>ClimaCore Lead Log</h1>
-  <p class="sub">Sign in with your work email. We'll email you a sign-in link.</p>
-  <form id="loginForm"><div style="display:grid;gap:10px"><input type="email" id="loginEmail" required placeholder="you@example.com" aria-label="Email address" autocomplete="email"><button type="submit" class="primary">Email me a sign-in link</button></div></form>
+  <p class="sub">Sign in with the email and password Mariette gave you.</p>
+  <form id="loginForm"><div style="display:grid;gap:10px"><input type="email" id="loginEmail" required placeholder="Email" aria-label="Email address" autocomplete="username"><input type="password" id="loginPw" required placeholder="Password" aria-label="Password" autocomplete="current-password"><button type="submit" class="primary">Sign in</button></div></form>
   <p class="msg" id="loginMsg"></p>
 </section>
 <div class="wrap" id="app" hidden>
@@ -162,7 +162,8 @@ form.add .row{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end;fle
     <div>
       <h1>ClimaCore Lead Log</h1>
       <p class="sub" id="sync">Loading leads…</p>
-      <p class="who-bar"><span id="whoami"></span><button type="button" class="linkbtn" id="signOut">Sign out</button></p>
+      <p class="who-bar"><span id="whoami"></span><button type="button" class="linkbtn" id="pwBtn">Change password</button><button type="button" class="linkbtn" id="signOut">Sign out</button></p>
+      <form id="pwForm" class="who-bar" hidden><input type="password" id="newPw" minlength="8" placeholder="New password (8+ characters)" aria-label="New password" autocomplete="new-password" style="font:13px var(--f-body);padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)"><button type="submit" class="linkbtn">Save</button><span id="pwMsg"></span></form>
     </div>
     <div class="actions">
       <button type="button" class="primary" id="addBtn">Add a lead</button>
@@ -497,11 +498,13 @@ $("csvBtn").addEventListener("click",()=>{
 $("loginForm").addEventListener("submit",async e=>{
   e.preventDefault();
   const email=$("loginEmail").value.trim();
-  $("loginMsg").className="msg";$("loginMsg").textContent="Sending…";
-  const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});
-  $("loginMsg").textContent=error?"Couldn't send the link: "+error.message:"Check your email for the sign-in link. You can close this tab.";
-  if(error)$("loginMsg").className="msg err";
+  $("loginMsg").className="msg";$("loginMsg").textContent="Signing in…";
+  const {error}=await sb.auth.signInWithPassword({email,password:$("loginPw").value});
+  if(error){$("loginMsg").textContent="That email and password don't match. Check them and try again.";$("loginMsg").className="msg err"}else $("loginMsg").textContent="";
 });
+$("pwBtn").addEventListener("click",()=>{$("pwForm").hidden=!$("pwForm").hidden;$("newPw").focus()});
+$("pwForm").addEventListener("submit",async e=>{e.preventDefault();const pw=$("newPw").value;if(pw.length<8){$("pwMsg").textContent="Use at least 8 characters.";return}
+  const {error}=await sb.auth.updateUser({password:pw});$("pwMsg").textContent=error?"Couldn't change it: "+error.message:"Password changed";if(!error){$("newPw").value="";setTimeout(()=>{$("pwForm").hidden=true;$("pwMsg").textContent=""},2000)}});
 $("signOut").addEventListener("click",async()=>{await sb.auth.signOut();location.reload()});
 (async()=>{
   if(!window.supabase){$("login").hidden=false;$("loginMsg").textContent="Couldn't load. Check your internet connection and reload.";return}
