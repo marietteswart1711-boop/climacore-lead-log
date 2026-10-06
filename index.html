@@ -111,6 +111,16 @@ tr.detail td{padding:0 10px 12px;border-bottom:1px solid var(--line)}
 @media (max-width:900px){.det{grid-template-columns:minmax(0,1fr)}}
 .det .lab{font:600 11px var(--f-body);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px;display:flex;justify-content:space-between;gap:8px}
 .det textarea{width:100%;min-height:58px;resize:vertical;font:13px/1.45 var(--f-body);padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
+.rt-bar{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font:600 11px var(--f-body);color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.rt-bar .grp{display:inline-flex;gap:4px;align-items:center}
+.rt-bar button{font:700 12px var(--f-body);text-transform:none;letter-spacing:0;min-width:28px;height:26px;padding:0 7px;border-radius:5px;line-height:1}
+.rt-bar button.sw{min-width:0;width:22px;height:22px;padding:0;border:1px solid var(--line)}
+.rt-bar button.tx{background:var(--panel)}
+.rt{min-height:58px;font:13px/1.45 var(--f-body);padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);overflow-wrap:anywhere;white-space:pre-wrap;cursor:text}
+.rt:focus{outline:2px solid var(--accent);outline-offset:1px}
+.rt:empty::before{content:attr(data-ph);color:var(--muted);pointer-events:none}
+.rt.one{min-height:0;flex:1 1 200px;min-width:0}
+.fu-list .rich{overflow-wrap:anywhere}
 .saved{font-weight:500;text-transform:none;letter-spacing:0;color:var(--won)}
 .fu-add{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .fu-add input[type=text]{flex:1 1 200px;min-width:0;font:13px var(--f-body);padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
@@ -346,12 +356,13 @@ function render(){
     const sum=fus.length?`<div class="fu-sum">Followed up ${fus.length}× · last ${fmt(last.at)}</div>`:(l.status==="New"||l.status==="Quoted")?`<div class="fu-sum none">No follow-up yet</div>`:"";
     const lid=esc(l._id);
     const det=`<tr class="detail${owed?" owed":""}${l.status==="Spam"?" spam":""}" data-id="${lid}"><td colspan="10"><div class="det">
-      <div><div class="lab"><label for="n-${lid}">Notes</label><span class="saved" id="ns-${lid}"></span></div>
-        <textarea id="n-${lid}" data-notes="1" placeholder="Anything about this lead: site details, who to speak to, access, prices discussed…">${esc(drafts["n-"+l._id]??l.notes??"")}</textarea></div>
+      ${rtBar(lid)}
+      <div><div class="lab"><span id="nl-${lid}">Notes</span><span class="saved" id="ns-${lid}"></span></div>
+        <div class="rt" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="nl-${lid}" id="n-${lid}" data-notes="1" data-ph="Anything about this lead: site details, who to speak to, access, prices discussed…">${drafts["n-"+l._id]!=null?clean(drafts["n-"+l._id]):notesHtml(l)}</div></div>
       <div><div class="lab"><span>Follow-ups</span><span>${fus.length?fus.length+" logged":""}</span></div>
-        <div class="fu-add"><input type="text" id="c-${lid}" data-fucomment="1" placeholder="Comment, e.g. called, left voicemail; sent quote; call back Tuesday" value="${esc(drafts["c-"+l._id]??"")}">
+        <div class="fu-add"><div class="rt one" contenteditable="true" role="textbox" aria-label="Follow-up comment" id="c-${lid}" data-fucomment="1" data-ph="Comment, e.g. called, left voicemail; sent quote; call back Tuesday">${clean(drafts["c-"+l._id]??"")}</div>
           <label class="fu-tick"><input type="checkbox" data-futick="1" id="t-${lid}"> Followed up</label></div>
-        ${fus.length?`<ul class="fu-list">${fus.map(f=>`<li><span class="fu-when">${fmt(f.at)}</span><span>${esc(f.comment)||'<span class="fu-who">(no comment)</span>'}${f.by?` <span class="fu-who">· <span data-uid="${esc(f.by)}">…</span></span>`:""}</span><button type="button" class="fu-x" data-fux="${esc(f.id)}" aria-label="Remove this follow-up">Remove</button></li>`).join("")}</ul>`:""}
+        ${fus.length?`<ul class="fu-list">${fus.map(f=>`<li><span class="fu-when">${fmt(f.at)}</span><span>${f.commentHtml?'<span class="rich">'+clean(f.commentHtml)+'</span>':(esc(f.comment)||'<span class="fu-who">(no comment)</span>')}${f.by?` <span class="fu-who">· <span data-uid="${esc(f.by)}">…</span></span>`:""}</span><button type="button" class="fu-x" data-fux="${esc(f.id)}" aria-label="Remove this follow-up">Remove</button></li>`).join("")}</ul>`:""}
       </div></div></td></tr>`;
     return `<tr data-id="${lid}" class="main${owed?" owed":""}${l.status==="Spam"?" spam":""}">
       <td class="date">${esc(l.date)}</td>
@@ -370,21 +381,82 @@ function render(){
 function fuList(l){return Object.entries(l.followUps||{}).filter(([k,v])=>v&&v.at).map(([k,v])=>Object.assign({id:k},v)).sort((a,b)=>b.at.localeCompare(a.at))}
 function fmt(iso){return new Date(iso).toLocaleString("en-ZA",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})}
 const drafts={};
+const RT_TXT=[["#c62828", "Red"], ["#d97706", "Orange"], ["#2e7d32", "Green"], ["#1565c0", "Blue"], ["#6a1b9a", "Purple"]], RT_HIL=[["#fff176", "Yellow"], ["#c8e6c9", "Green"], ["#f8bbd0", "Pink"], ["#bbdefb", "Blue"], ["#ffe0b2", "Orange"]];
+const RT_COL=/^(#[0-9a-f]{3,8}|rgba?\(\s*[\d.]+\s*,\s*[\d.]+\s*,\s*[\d.]+\s*(,\s*[\d.]+\s*)?\))$/i;
+function clean(h){
+  const t=document.createElement("template");t.innerHTML=String(h||"");
+  const out=document.createElement("div");
+  const OK={B:"b",STRONG:"b",I:"i",EM:"i",U:"u",SPAN:"span",FONT:"span",BR:"br",DIV:"div",P:"div"};
+  (function walk(src,dst){src.childNodes.forEach(n=>{
+    if(n.nodeType===3){dst.appendChild(document.createTextNode(n.nodeValue));return}
+    if(n.nodeType!==1)return;
+    const tag=OK[n.tagName]; if(!tag){walk(n,dst);return}
+    const el=document.createElement(tag);
+    if(tag!=="br"){
+      const s=n.style||{}; const fc=n.tagName==="FONT"?n.getAttribute("color"):null;
+      const col=s.color||fc; if(col&&RT_COL.test(col.trim()))el.style.color=col.trim();
+      const bg=s.backgroundColor; if(bg&&RT_COL.test(bg.trim())&&!/rgba\([^)]*,\s*0\s*\)/.test(bg)){el.style.backgroundColor=bg.trim();if(!el.style.color)el.style.color="#1b1b1b";el.style.borderRadius="2px"}
+      if(/underline/.test((s.textDecorationLine||"")+" "+(s.textDecoration||"")))el.style.textDecoration="underline";
+      if(s.fontWeight==="bold"||+s.fontWeight>=600)el.style.fontWeight="700";
+      if(s.fontStyle==="italic")el.style.fontStyle="italic";
+      walk(n,el);
+    }
+    dst.appendChild(el);
+  })})(t.content,out);
+  return out.innerHTML.slice(0,20000);
+}
+function plainOf(h){const d=document.createElement("div");d.innerHTML=clean(h);d.querySelectorAll("br").forEach(b=>b.replaceWith("\n"));d.querySelectorAll("div").forEach(x=>x.prepend("\n"));return d.textContent.replace(/^\n/,"").trim()}
+function notesHtml(l){
+  const sq=s=>String(s||"").replace(/\s+/g,"");
+  if(l.notesHtml&&sq(plainOf(l.notesHtml))===sq(l.notes))return clean(l.notesHtml);
+  return esc(l.notes||"").replace(/\n/g,"<br>");
+}
+function rtBar(lid){
+  return `<div class="rt-bar" data-bar="${lid}" aria-label="Text formatting">
+    <span class="grp"><button type="button" data-rt="underline" title="Underline (Ctrl+U)" style="text-decoration:underline">U</button><button type="button" data-rt="bold" title="Bold (Ctrl+B)">B</button><button type="button" data-rt="italic" title="Italic (Ctrl+I)" style="font-style:italic">I</button></span>
+    <span class="grp">Text ${RT_TXT.map(([c,n])=>`<button type="button" class="sw tx" data-rt="foreColor" data-v="${c}" title="${n} text" aria-label="${n} text" style="color:${c}">A</button>`).join("")}</span>
+    <span class="grp">Highlight ${RT_HIL.map(([c,n])=>`<button type="button" class="sw" data-rt="hiliteColor" data-v="${c}" title="${n} highlight" aria-label="${n} highlight" style="background:${c}"></button>`).join("")}</span>
+    <span class="grp"><button type="button" data-rt="removeFormat" title="Clear formatting on the selected words">Clear</button></span>
+  </div>`;
+}
+let rtLast=null;
+document.addEventListener("focusin",e=>{if(e.target.classList&&e.target.classList.contains("rt"))rtLast=e.target});
+$("rows").addEventListener("mousedown",e=>{if(e.target.closest(".rt-bar button"))e.preventDefault()});
+$("rows").addEventListener("click",e=>{
+  const b=e.target.closest(".rt-bar button[data-rt]"); if(!b)return;
+  const tr=b.closest("tr"); let ed=rtLast&&tr.contains(rtLast)?rtLast:tr.querySelector("[data-notes]");
+  if(!ed)return;
+  if(document.activeElement!==ed)ed.focus();
+  try{document.execCommand("styleWithCSS",false,true)}catch(_){}
+  const cmd=b.dataset.rt, v=b.dataset.v||null;
+  if(cmd==="hiliteColor"){if(!document.execCommand("hiliteColor",false,v))document.execCommand("backColor",false,v)}
+  else document.execCommand(cmd,false,v);
+  drafts[ed.id]=ed.innerHTML;
+});
+$("rows").addEventListener("focusout",e=>{
+  const el=e.target; if(!el.dataset||!el.dataset.notes)return;
+  const tr=el.closest("tr"); if(!tr)return; const id=tr.dataset.id;
+  const html=clean(el.innerHTML), text=plainOf(html);
+  const l=leads.find(x=>x._id===id)||{};
+  if(text===(l.notes||"")&&(html===(l.notesHtml||"")||(!l.notesHtml&&html===esc(l.notes||"").replace(/\n/g,"<br>"))))return;
+  Promise.resolve(save(id,{notes:text,notes_html:html})).then(()=>{const lx=leads.find(x=>x._id===id);if(lx)lx.notesHtml=html;delete drafts[el.id];const s=$("ns-"+id);if(s){s.textContent="Saved";setTimeout(()=>{if(s)s.textContent=""},2000)}}).catch(()=>{});
+});
+
 let pending=false;
 function safeRender(){
   const a=document.activeElement;
-  if(a&&$("rows").contains(a)&&(a.tagName==="TEXTAREA"||(a.tagName==="INPUT"&&a.type==="text")||a.classList.contains("money"))){pending=true;stats();ads();return}
+  if(a&&$("rows").contains(a)&&(a.isContentEditable||a.tagName==="TEXTAREA"||(a.tagName==="INPUT"&&a.type==="text")||a.classList.contains("money"))){pending=true;stats();ads();return}
   pending=false;render();
 }
 $("rows").addEventListener("focusout",()=>{setTimeout(()=>{if(pending)safeRender()},0)});
-$("rows").addEventListener("input",e=>{const el=e.target;if(el.dataset.notes||el.dataset.fucomment)drafts[el.id]=el.value});
+$("rows").addEventListener("input",e=>{const el=e.target;if(el.dataset.notes||el.dataset.fucomment)drafts[el.id]=el.isContentEditable?el.innerHTML:el.value});
 async function logFollowUp(tr){
   const id=tr.dataset.id, c=$("c-"+id), t=$("t-"+id);
-  const {error}=await sb.from("follow_ups").insert({lead_id:id,comment:(c.value||"").trim()});
-  if(error){$("sync").textContent="Couldn't save the follow-up. Try again."}else{c.value="";delete drafts["c-"+id];await loadFollowUps()}
+  const ch=clean(c.innerHTML);const {error}=await sb.from("follow_ups").insert({lead_id:id,comment:plainOf(ch),comment_html:ch});
+  if(error){$("sync").textContent="Couldn't save the follow-up. Try again."}else{c.innerHTML="";delete drafts["c-"+id];await loadFollowUps()}
   if(t)t.checked=false;
 }
-$("rows").addEventListener("keydown",e=>{const el=e.target;if(el.dataset.fucomment&&e.key==="Enter"&&el.value.trim()){e.preventDefault();logFollowUp(el.closest("tr"))}});
+$("rows").addEventListener("keydown",e=>{const el=e.target;if(el.dataset.fucomment&&e.key==="Enter"&&!e.shiftKey&&(el.innerText||"").trim()){e.preventDefault();logFollowUp(el.closest("tr"))}});
 async function save(id,patch){
   const {error}=await sb.from("leads").update(patch).eq("id",id);
   if(error){$("sync").textContent="Couldn't save that change. Try again in a moment.";throw error}
@@ -438,11 +510,11 @@ function syncLine(){
 const SUPABASE_URL="https://gjrmxwwujudgxkqkpyby.supabase.co";
 const SUPABASE_KEY="sb_publishable_EyqmNpJcErSFmE2BO9znAA_UFNmOlxX";
 function mapLead(r){
-  const l={_id:r.id,date:r.date,name:r.name,phone:r.phone||"",email:r.email||"",suburb:r.suburb||"",kind:r.kind||"",work:r.work||"",source:r.source||"",need:r.need||"",status:r.status,quoted:r.quoted==null?null:Number(r.quoted),invoiced:r.invoiced||"",paid:r.paid||"",notes:r.notes||"",addedAt:r.added_at,followUps:{}};
+  const l={_id:r.id,date:r.date,name:r.name,phone:r.phone||"",email:r.email||"",suburb:r.suburb||"",kind:r.kind||"",work:r.work||"",source:r.source||"",need:r.need||"",status:r.status,quoted:r.quoted==null?null:Number(r.quoted),invoiced:r.invoiced||"",paid:r.paid||"",notes:r.notes||"",notesHtml:r.notes_html||"",addedAt:r.added_at,followUps:{}};
   return l;
 }
 function attachFollowUps(){
-  const by={};fuRows.forEach(f=>{(by[f.lead_id]=by[f.lead_id]||{})[f.id]={at:f.at,comment:f.comment||"",by:f.by_email||""}});
+  const by={};fuRows.forEach(f=>{(by[f.lead_id]=by[f.lead_id]||{})[f.id]={at:f.at,comment:f.comment||"",commentHtml:f.comment_html||"",by:f.by_email||""}});
   leads.forEach(l=>{l.followUps=by[l._id]||{}});
 }
 async function loadLeads(){
