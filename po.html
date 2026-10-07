@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>APS LF JV PO #'s</title>
+<meta name="theme-color" content="#1b2430">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a finance ledger — counters on top, three tabbed tables below, every cell editable in place */
+:root{
+  --bg:#f4f5f7; --panel:#fff; --ink:#1b2430; --muted:#5f6b78; --line:#dbe0e6; --soft:#eef1f4;
+  --accent:#1d5fa8; --accent-ink:#fff; --accent-soft:#dfeaf7;
+  --red:#b42318; --red-bg:#fde7e5; --red-line:#f3b4ad; --ok:#157f3d; --ok-bg:#dcf3e3; --warn:#9a5b00; --warn-bg:#fdf0d5; --grey-bg:#eceff2;
+  --f-display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f141a; --panel:#171e26; --ink:#e4e9ef; --muted:#97a3b0; --line:#28323d; --soft:#1d2630;
+  --accent:#6aa8ec; --accent-ink:#071829; --accent-soft:#1a2f47;
+  --red:#ff8a80; --red-bg:#3d1714; --red-line:#6e2a24; --ok:#62d08d; --ok-bg:#12331f; --warn:#f2b45a; --warn-bg:#3a2a10; --grey-bg:#222b35; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f141a; --panel:#171e26; --ink:#e4e9ef; --muted:#97a3b0; --line:#28323d; --soft:#1d2630;
+  --accent:#6aa8ec; --accent-ink:#071829; --accent-soft:#1a2f47;
+  --red:#ff8a80; --red-bg:#3d1714; --red-line:#6e2a24; --ok:#62d08d; --ok-bg:#12331f; --warn:#f2b45a; --warn-bg:#3a2a10; --grey-bg:#222b35; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 var(--f-body);padding:20px 16px 48px}
+.wrap{max-width:1400px;margin:0 auto;display:grid;gap:16px}
+.wrap>*{min-width:0}
+td.mono .ro,td:first-child .ro{white-space:nowrap}
+h1{font:800 clamp(24px,4vw,34px)/1.05 var(--f-display);font-stretch:85%;margin:0;letter-spacing:-.01em}
+.sub{margin:4px 0 0;color:var(--muted);font-size:13px}
+.head{display:flex;flex-wrap:wrap;gap:12px 24px;justify-content:space-between;align-items:flex-end}
+.who{font-size:12px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:6px}
+.linkbtn{background:none;border:0;padding:0;color:var(--accent);font:600 12px var(--f-body);cursor:pointer}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;text-align:left;font:inherit;color:inherit}
+.stat b{display:block;font:700 26px/1.1 var(--f-display);font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted)}
+.stat.red{border-color:var(--red-line);background:var(--red-bg)} .stat.red b{color:var(--red)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{font:600 14px var(--f-body);background:none;border:0;border-bottom:3px solid transparent;padding:10px 14px;color:var(--muted);cursor:pointer;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tab .n{font:500 11px var(--f-mono);background:var(--soft);border-radius:10px;padding:1px 7px;margin-left:6px}
+.tab .n.red{background:var(--red);color:#fff}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.btn{font:600 13px var(--f-body);border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:7px;padding:7px 12px;cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chk{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--muted)}
+.tablewrap{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:auto;max-width:100%}
+table{border-collapse:collapse;width:100%;min-width:1100px}
+#tab-po table{min-width:1580px}
+th{position:sticky;top:0;background:var(--soft);font:600 11px var(--f-body);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:left;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:4px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+td input,td select,td textarea{width:100%;border-color:transparent;background:transparent;padding:5px 6px;border-radius:5px}
+td input:hover,td select:hover,td textarea:hover{border-color:var(--line)}
+td input:focus,td select:focus,td textarea:focus{border-color:var(--accent);background:var(--panel)}
+td textarea{resize:vertical;min-height:30px;field-sizing:content}
+td .ro{padding:5px 6px;display:block}
+.mono{font-family:var(--f-mono);font-size:12.5px}
+tr.missing td{background:var(--red-bg)} tr.missing td:first-child{box-shadow:inset 4px 0 0 var(--red)}
+tr.missing .flag{color:var(--red);font-weight:700}
+tr.check td{background:var(--warn-bg)}
+tr.ok td:first-child{box-shadow:inset 4px 0 0 var(--ok)}
+tr.muted td{color:var(--muted)}
+.pill{display:inline-block;font:600 11px var(--f-body);padding:2px 8px;border-radius:10px;white-space:nowrap}
+.pill.red{background:var(--red);color:#fff} .pill.ok{background:var(--ok-bg);color:var(--ok)} .pill.grey{background:var(--grey-bg);color:var(--muted)} .pill.warn{background:var(--warn-bg);color:var(--warn)}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+.saved{font-size:12px;color:var(--muted);min-height:1em}
+.saved.err{color:var(--red)}
+.login{max-width:380px;margin:12vh auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:26px;display:grid;gap:14px}
+.login input{width:100%;padding:9px 10px}
+.msg{font-size:13px;color:var(--red);min-height:1em;margin:0}
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);padding:22px;width:min(560px,calc(100vw - 32px))}
+dialog::backdrop{background:rgba(0,0,0,.35)}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form label{display:grid;gap:4px;font-size:12px;color:var(--muted)}
+.form .full{grid-column:1/-1}
+@media (max-width:600px){.form{grid-template-columns:1fr}}
+.foot{font-size:12px;color:var(--muted)}
+.btn.sm{padding:4px 9px;font-size:12px;white-space:nowrap}
+.btn.sm .open{color:var(--red);font-weight:700}
+.rtbar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:600 11px var(--f-body);color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.rtbar .grp{display:inline-flex;gap:4px;align-items:center}
+.rtbar button{font:700 12px var(--f-body);text-transform:none;letter-spacing:0;min-width:28px;height:26px;padding:0 7px;border-radius:5px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer;line-height:1}
+.rtbar button.sw{min-width:0;width:22px;height:22px;padding:0}
+.rtbar .hint{text-transform:none;letter-spacing:0;font-weight:500}
+.rtbar.idle button{opacity:.45}
+.rt{min-height:30px;font:13px/1.45 var(--f-body);padding:5px 6px;border:1px solid transparent;border-radius:5px;color:var(--ink);overflow-wrap:anywhere;white-space:pre-wrap;cursor:text}
+.rt:hover{border-color:var(--line)}
+.rt:focus{outline:none;border-color:var(--accent);background:var(--panel)}
+.rt:empty::before{content:attr(data-ph);color:var(--muted);pointer-events:none}
+.rt.box{min-height:70px;border-color:var(--line);background:var(--panel)}
+tr.det>td{background:var(--soft)!important;padding:12px 14px 16px;box-shadow:none!important}
+.detgrid{display:grid;grid-template-columns:minmax(260px,1fr) minmax(320px,1.4fr);gap:18px;max-width:1300px}
+@media (max-width:800px){.detgrid{grid-template-columns:1fr}}
+.lab{font:600 11px var(--f-body);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between;gap:8px}
+.fu-add{display:grid;grid-template-columns:1fr 150px;gap:6px;margin-bottom:10px}
+.fu-add .rt{grid-column:1/-1;border-color:var(--line);background:var(--panel);min-height:40px}
+.fu-add .btn{justify-self:start}
+.fu-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.fu-list li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:start;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.fu-list li.done{opacity:.7}
+.fu-list li.done .fu-c{text-decoration:line-through;text-decoration-thickness:1px}
+.fu-list li.late{border-color:var(--red-line)}
+.fu-list input[type=checkbox]{width:18px;height:18px;margin:2px 0 0;accent-color:var(--ok)}
+.fu-meta{font-size:12px;color:var(--muted)}
+.fu-meta b{color:var(--ink)}
+.fu-late{color:var(--red);font-weight:700}
+tr.missing input.flag{color:var(--red);font-weight:700}
+#txCard select{width:100%}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+<section class="login" id="login" hidden>
+  <h1>APS LF JV PO #'s</h1>
+  <p class="sub">Sign in with the email and password you were given.</p>
+  <form id="loginForm" style="display:grid;gap:10px">
+    <input type="email" id="loginEmail" required placeholder="Email" aria-label="Email address" autocomplete="username">
+    <input type="password" id="loginPw" required placeholder="Password" aria-label="Password" autocomplete="current-password">
+    <button type="submit" class="btn primary">Sign in</button>
+  </form>
+  <p class="msg" id="loginMsg"></p>
+</section>
+
+<div class="wrap" id="app" hidden>
+  <header class="head">
+    <div>
+      <h1>APS LF JV PO #'s</h1>
+      <p class="sub" id="sync">Loading…</p>
+      <div class="who"><span id="whoami"></span>
+        <button type="button" class="linkbtn" id="pwBtn">Change password</button>
+        <button type="button" class="linkbtn" id="signOut">Sign out</button>
+        <form id="pwForm" hidden style="display:flex;gap:6px"><input type="password" id="newPw" minlength="8" placeholder="New password (8+)" aria-label="New password" autocomplete="new-password"><button class="linkbtn">Save</button><span id="pwMsg"></span></form>
+      </div>
+    </div>
+    <div class="tools">
+      <label class="chk">From <input type="date" id="fFrom"></label>
+      <label class="chk">To <input type="date" id="fTo"></label>
+      <input type="search" id="fQ" placeholder="Search supplier, PO #, project…" aria-label="Search">
+      <button type="button" class="btn" id="refresh">Refresh</button>
+    </div>
+  </header>
+
+  <div class="stats">
+    <button type="button" class="stat red" data-go="nopo"><b id="sMissing">–</b><span>Bank payments missing a PO</span></button>
+    <button type="button" class="stat red" data-go="cash"><b id="sCashMissing">–</b><span>Cash withdrawals without a PO</span></button>
+    <button type="button" class="stat" data-go="po"><b id="sOpen">–</b><span>Open POs not yet paid</span></button>
+    <button type="button" class="stat" data-go="nopo"><b id="sMissingAmt">–</b><span>Value without a PO (R)</span></button>
+    <button type="button" class="stat" id="fuStat"><b id="sFu">–</b><span>Follow-ups not done</span></button>
+  </div>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="po" aria-selected="true">1. PO requests<span class="n" id="nPo">0</span></button>
+    <button class="tab" role="tab" data-tab="nopo" aria-selected="false">2. Bank transactions without a PO<span class="n" id="nNopo">0</span></button>
+    <button class="tab" role="tab" data-tab="cash" aria-selected="false">3. Cash withdrawals without a PO<span class="n" id="nCash">0</span></button>
+    <button class="tab" role="tab" data-tab="cashpo" aria-selected="false">4. Cash withdrawals with a PO<span class="n" id="nCashPo">0</span></button>
+    <button class="tab" role="tab" data-tab="withpo" aria-selected="false">5. Bank transactions with a PO<span class="n" id="nWith">0</span></button>
+    <button class="tab" role="tab" data-tab="cards" aria-selected="false">Bank cards<span class="n" id="nCards">0</span></button>
+  </nav>
+
+  <div class="rtbar idle" id="rtbar" aria-label="Text formatting">
+    <span class="grp"><button type="button" data-rt="bold" title="Bold (Ctrl+B)">B</button><button type="button" data-rt="underline" title="Underline (Ctrl+U)" style="text-decoration:underline">U</button><button type="button" data-rt="italic" title="Italic (Ctrl+I)" style="font-style:italic">I</button></span>
+    <span class="grp" id="rtTxt">Text </span>
+    <span class="grp" id="rtHil">Highlight </span>
+    <span class="grp"><button type="button" data-rt="removeFormat" title="Clear formatting on the selected words">Clear</button></span>
+    <span class="hint">Select words in a notes, "what for" or explanation box, then pick a style.</span>
+  </div>
+
+  <section id="tab-po">
+    <div class="tools" style="margin-bottom:10px">
+      <button type="button" class="btn primary" id="addPo">+ Add PO request</button>
+      <label class="chk"><input type="checkbox" id="showCancelled"> Show cancelled</label>
+      <span class="saved" id="saved-po"></span>
+    </div>
+    <div class="tablewrap"><table>
+      <thead><tr><th style="min-width:140px">Date</th><th style="min-width:110px">Time</th><th style="min-width:120px">Requested by</th><th style="min-width:230px">What for</th><th class="num" style="min-width:110px">Amount (R)</th><th style="min-width:140px">Supplier</th><th style="min-width:140px">Project</th><th style="min-width:110px">PO #</th><th style="min-width:110px">Given by</th><th style="min-width:110px">Status</th><th style="min-width:110px">Paid (bank)</th><th>Notes &amp; follow-ups</th></tr></thead>
+      <tbody id="poBody"></tbody>
+    </table></div>
+  </section>
+
+  <section id="tab-nopo" hidden>
+    <div class="tools" style="margin-bottom:10px">
+      <button type="button" class="btn primary" data-addtx>+ Add bank transaction</button>
+      <label class="chk"><input type="checkbox" id="showResolved"> Also show "No PO needed"</label>
+      <span class="saved" id="saved-nopo"></span>
+    </div>
+    <div class="tablewrap"><table>
+      <thead><tr><th style="min-width:140px">Date</th><th style="min-width:220px">Bank description</th><th style="min-width:120px">Reference</th><th class="num" style="min-width:110px">Amount (R)</th><th style="min-width:260px">Card holder</th><th style="min-width:130px">Type</th><th style="min-width:110px">PO #</th><th style="min-width:130px">Status</th><th style="min-width:230px">Explanation</th><th>Alerted</th><th>Notes &amp; follow-ups</th></tr></thead>
+      <tbody id="nopoBody"></tbody>
+    </table></div>
+  </section>
+
+  <section id="tab-cash" hidden>
+    <div class="tools" style="margin-bottom:10px"><button type="button" class="btn primary" data-addtx="Cash withdrawal">+ Add cash withdrawal</button><span class="saved" id="saved-cash"></span></div>
+    <div class="tablewrap"><table>
+      <thead><tr><th style="min-width:140px">Date</th><th style="min-width:220px">Bank description</th><th style="min-width:120px">Reference</th><th class="num" style="min-width:110px">Amount (R)</th><th style="min-width:260px">Card holder</th><th style="min-width:110px">PO #</th><th style="min-width:180px">PO request</th><th style="min-width:130px">Status</th><th style="min-width:230px">What was it for</th><th>Notes &amp; follow-ups</th></tr></thead>
+      <tbody id="cashBody"></tbody>
+    </table></div>
+  </section>
+
+  <section id="tab-cashpo" hidden>
+    <div class="tools" style="margin-bottom:10px"><span class="saved" id="saved-cashpo"></span></div>
+    <div class="tablewrap"><table>
+      <thead><tr><th style="min-width:140px">Date</th><th style="min-width:220px">Bank description</th><th style="min-width:120px">Reference</th><th class="num" style="min-width:110px">Amount (R)</th><th style="min-width:260px">Card holder</th><th style="min-width:110px">PO #</th><th style="min-width:180px">PO request</th><th style="min-width:130px">Status</th><th style="min-width:230px">What was it for</th><th>Notes &amp; follow-ups</th></tr></thead>
+      <tbody id="cashpoBody"></tbody>
+    </table></div>
+  </section>
+
+  <section id="tab-withpo" hidden>
+    <div class="tools" style="margin-bottom:10px"><span class="saved" id="saved-withpo"></span></div>
+    <div class="tablewrap"><table>
+      <thead><tr><th style="min-width:140px">Date</th><th style="min-width:220px">Bank description</th><th style="min-width:120px">Reference</th><th class="num" style="min-width:110px">Amount (R)</th><th style="min-width:260px">Card holder</th><th style="min-width:130px">Type</th><th style="min-width:110px">PO #</th><th style="min-width:120px">Requested by</th><th style="min-width:200px">What for</th><th style="min-width:130px">Supplier</th><th style="min-width:130px">Project</th><th style="min-width:130px">Status</th><th style="min-width:200px">Explanation</th><th>Notes &amp; follow-ups</th></tr></thead>
+      <tbody id="withpoBody"></tbody>
+    </table></div>
+  </section>
+
+  <section id="tab-cards" hidden>
+    <div class="tools" style="margin-bottom:10px"><button type="button" class="btn primary" id="addCard">+ Add card</button><label class="chk"><input type="checkbox" id="showInactive"> Show inactive cards</label><span class="saved" id="saved-cards"></span></div>
+    <div class="tablewrap"><table style="min-width:760px">
+      <thead><tr><th style="min-width:200px">Card holder</th><th style="min-width:140px">Account</th><th style="min-width:110px">Last 4 digits</th><th>Active</th><th style="min-width:240px">Notes</th><th class="num">Transactions</th></tr></thead>
+      <tbody id="cardsBody"></tbody>
+    </table></div>
+    <p class="foot" style="margin-top:8px">Only the last 4 digits are kept here, never full card numbers. The morning update fills in the card holder when the bank description shows the card's last 4 digits; you can also pick it by hand on any transaction.</p>
+  </section>
+
+  <p class="foot">Red = money left the bank account with no purchase order. Type a PO number, or set the status to "No PO needed" with an explanation, to clear it. Every cell can be edited; changes save when you click away. Updated automatically every morning; alerts go to Cecil, Ilana and Gustav.</p>
+</div>
+
+<dialog id="poDlg">
+  <form id="poForm">
+    <h2 style="margin:0 0 14px;font:700 20px var(--f-display)">Add PO request</h2>
+    <div class="form">
+      <label>Date &amp; time<input type="datetime-local" name="requested_at" required></label>
+      <label>Requested by<input name="requested_by" required></label>
+      <label class="full">What for<input name="description" required></label>
+      <label>Amount (R)<input name="amount" type="number" step="0.01" min="0"></label>
+      <label>Supplier<input name="supplier"></label>
+      <label>Project name<input name="project"></label>
+      <label>PO # given<input name="po_number"></label>
+      <label>Given by<input name="approved_by"></label>
+    </div>
+    <div class="tools" style="margin-top:16px;justify-content:flex-end">
+      <button type="button" class="btn" data-close>Cancel</button>
+      <button type="submit" class="btn primary">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="txDlg">
+  <form id="txForm">
+    <h2 style="margin:0 0 14px;font:700 20px var(--f-display)">Add bank transaction</h2>
+    <div class="form">
+      <label>Date<input type="date" name="txn_date" required></label>
+      <label>Type<select name="kind"><option>Payment</option><option>Cash withdrawal</option><option>Bank charge</option><option>Transfer</option><option>Other</option></select></label>
+      <label class="full">Bank description<input name="description" required></label>
+      <label>Reference<input name="reference"></label>
+      <label>Amount paid out (R)<input name="amount" type="number" step="0.01" min="0" required></label>
+      <label>PO # (if any)<input name="po_number"></label>
+      <label class="full">Card holder<span id="txCard"></span></label>
+    </div>
+    <div class="tools" style="margin-top:16px;justify-content:flex-end">
+      <button type="button" class="btn" data-close>Cancel</button>
+      <button type="submit" class="btn primary">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+const SUPABASE_URL="https://gjrmxwwujudgxkqkpyby.supabase.co";
+const SUPABASE_KEY="sb_publishable_EyqmNpJcErSFmE2BO9znAA_UFNmOlxX";
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const $=id=>document.getElementById(id);
+let PO=[],TX=[],FU=[],CARDS=[],META={},tab="po",started=false,me="",pending=false;
+const OPEN=new Set();
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const money=n=>n==null||n===""?"":Number(n).toLocaleString("en-ZA",{minimumFractionDigits:2,maximumFractionDigits:2});
+const tz="Africa/Johannesburg";
+const dPart=ts=>ts?new Date(ts).toLocaleDateString("en-CA",{timeZone:tz}):"";
+const tPart=ts=>ts?new Date(ts).toLocaleTimeString("en-GB",{timeZone:tz,hour:"2-digit",minute:"2-digit"}):"";
+const today=()=>new Date().toLocaleDateString("en-CA",{timeZone:tz});
+const normPo=s=>String(s||"").trim().toUpperCase().replace(/[\s\-_#]+/g,"");
+
+/* ---------- rich text ---------- */
+const RT_TXT=[["#c62828","Red"],["#d97706","Orange"],["#2e7d32","Green"],["#1565c0","Blue"],["#6a1b9a","Purple"]];
+const RT_HIL=[["#fff176","Yellow"],["#c8e6c9","Green"],["#f8bbd0","Pink"],["#bbdefb","Blue"],["#ffe0b2","Orange"]];
+$("rtTxt").insertAdjacentHTML("beforeend",RT_TXT.map(([c,n])=>`<button type="button" class="sw" data-rt="foreColor" data-v="${c}" title="${n} text" aria-label="${n} text" style="color:${c}">A</button>`).join(""));
+$("rtHil").insertAdjacentHTML("beforeend",RT_HIL.map(([c,n])=>`<button type="button" class="sw" data-rt="hiliteColor" data-v="${c}" title="${n} highlight" aria-label="${n} highlight" style="background:${c}"></button>`).join(""));
+const RT_COL=/^(#[0-9a-f]{3,8}|rgba?\(\s*[\d.]+\s*,\s*[\d.]+\s*,\s*[\d.]+\s*(,\s*[\d.]+\s*)?\))$/i;
+function clean(h){
+  const t=document.createElement("template");t.innerHTML=String(h||"");
+  const out=document.createElement("div");
+  const OK={B:"b",STRONG:"b",I:"i",EM:"i",U:"u",SPAN:"span",FONT:"span",BR:"br",DIV:"div",P:"div"};
+  (function walk(src,dst){src.childNodes.forEach(n=>{
+    if(n.nodeType===3){dst.appendChild(document.createTextNode(n.nodeValue));return}
+    if(n.nodeType!==1)return;
+    const tag=OK[n.tagName];if(!tag){walk(n,dst);return}
+    const el=document.createElement(tag);
+    if(tag!=="br"){
+      const s=n.style||{},fc=n.tagName==="FONT"?n.getAttribute("color"):null;
+      const col=s.color||fc;if(col&&RT_COL.test(col.trim()))el.style.color=col.trim();
+      const bg=s.backgroundColor;if(bg&&RT_COL.test(bg.trim())&&!/rgba\([^)]*,\s*0\s*\)/.test(bg)){el.style.backgroundColor=bg.trim();if(!el.style.color)el.style.color="#1b1b1b";el.style.borderRadius="2px"}
+      if(/underline/.test((s.textDecorationLine||"")+" "+(s.textDecoration||"")))el.style.textDecoration="underline";
+      if(s.fontWeight==="bold"||+s.fontWeight>=600)el.style.fontWeight="700";
+      if(s.fontStyle==="italic")el.style.fontStyle="italic";
+      walk(n,el);
+    }
+    dst.appendChild(el);
+  })})(t.content,out);
+  return out.innerHTML.slice(0,20000);
+}
+function plainOf(h){const d=document.createElement("div");d.innerHTML=clean(h);d.querySelectorAll("br").forEach(b=>b.replaceWith("\n"));d.querySelectorAll("div").forEach(x=>x.prepend("\n"));return d.textContent.replace(/^\n/,"").trim()}
+/* show the saved formatting if it still matches the plain text (the morning update may have rewritten the plain text) */
+function richOf(plain,html){const sq=s=>String(s||"").replace(/\s+/g,"");if(html&&sq(plainOf(html))===sq(plain))return clean(html);return esc(plain||"").replace(/\n/g,"<br>")}
+const rtBox=(f,plain,html,ph,cls="")=>`<div class="rt ${cls}" contenteditable="true" role="textbox" aria-multiline="true" aria-label="${esc(ph)}" data-rtf="${f}" data-ph="${esc(ph)}">${richOf(plain,html)}</div>`;
+let rtLast=null;
+document.addEventListener("focusin",e=>{if(e.target.classList&&e.target.classList.contains("rt")){rtLast=e.target;$("rtbar").classList.remove("idle")}});
+$("rtbar").addEventListener("mousedown",e=>{if(e.target.closest("button"))e.preventDefault()});
+$("rtbar").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-rt]");if(!b||!rtLast||!document.body.contains(rtLast))return;
+  if(document.activeElement!==rtLast)rtLast.focus();
+  try{document.execCommand("styleWithCSS",false,true)}catch(_){}
+  const cmd=b.dataset.rt,v=b.dataset.v||null;
+  if(cmd==="hiliteColor"){if(!document.execCommand("hiliteColor",false,v))document.execCommand("backColor",false,v)}
+  else document.execCommand(cmd,false,v);
+});
+
+/* ---------- auth ---------- */
+async function boot(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(session)start(session);else $("login").hidden=false;
+  sb.auth.onAuthStateChange((ev,s)=>{if(s&&!started)start(s);if(ev==="SIGNED_OUT")location.reload()});
+}
+$("loginForm").addEventListener("submit",async e=>{
+  e.preventDefault();$("loginMsg").textContent="";
+  const {error}=await sb.auth.signInWithPassword({email:$("loginEmail").value.trim(),password:$("loginPw").value});
+  if(error)$("loginMsg").textContent="Couldn't sign in: "+error.message;
+});
+$("signOut").onclick=()=>sb.auth.signOut();
+$("pwBtn").onclick=()=>{$("pwForm").hidden=!$("pwForm").hidden};
+$("pwForm").addEventListener("submit",async e=>{e.preventDefault();
+  const {error}=await sb.auth.updateUser({password:$("newPw").value});
+  $("pwMsg").textContent=error?"Couldn't change it: "+error.message:"Password changed";});
+function start(s){
+  started=true;me=s.user.email;$("login").hidden=true;$("app").hidden=false;
+  $("whoami").textContent="Signed in as "+me;
+  const d=new Date();d.setDate(d.getDate()-60);$("fFrom").value=d.toISOString().slice(0,10);
+  load();
+  let t;const later=()=>{clearTimeout(t);t=setTimeout(()=>{if(editing())pending=true;else load()},400)};
+  sb.channel("po-log").on("postgres_changes",{event:"*",schema:"public",table:"po_requests"},later)
+    .on("postgres_changes",{event:"*",schema:"public",table:"bank_txns"},later)
+    .on("postgres_changes",{event:"*",schema:"public",table:"po_followups"},later)
+    .on("postgres_changes",{event:"*",schema:"public",table:"po_cards"},later).subscribe();
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden&&!editing())load()});
+}
+const editing=()=>{const a=document.activeElement;return!!(a&&a!==document.body&&a.closest&&a.closest("#app td")&&(a.isContentEditable||/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)))};
+document.addEventListener("focusout",()=>setTimeout(()=>{if(!editing()&&pending){pending=false;load()}},150));
+
+/* ---------- data ---------- */
+async function load(){
+  const [p,t,f,m,cd]=await Promise.all([
+    sb.from("po_requests").select("*").order("requested_at",{ascending:false}).limit(3000),
+    sb.from("bank_txns").select("*").order("txn_date",{ascending:false}).limit(5000),
+    sb.from("po_followups").select("*").order("created_at",{ascending:false}).limit(5000),
+    sb.from("po_meta").select("*"),
+    sb.from("po_cards").select("*").order("account").order("holder")]);
+  const err=p.error||t.error||f.error;
+  if(err){$("sync").textContent="Couldn't load: "+err.message+(/permission|denied/i.test(err.message)?" — your email isn't on this log yet.":"");return}
+  PO=p.data;TX=t.data;FU=f.data;CARDS=cd.data||[];META={};(m.data||[]).forEach(r=>META[r.key]=r.value);
+  const ls=META.last_sync;
+  $("sync").textContent=ls?`Last automatic update ${dPart(ls.at)} ${tPart(ls.at)}${ls.note?" · "+ls.note:""}`:"Waiting for the first automatic update";
+  render();
+}
+function flash(msg,err){const m=$("saved-"+tab);if(!m)return;m.className="saved"+(err?" err":"");m.textContent=msg}
+async function save(table,id,patch,tr){
+  const {error}=await sb.from(table).update(patch).eq("id",id);
+  if(error){flash("Not saved: "+error.message,true);return false}
+  flash("Saved "+tPart(new Date()));
+  const r=(table==="po_requests"?PO:table==="po_cards"?CARDS:TX).find(x=>x.id===id);if(r)Object.assign(r,patch);
+  if(tr&&table==="bank_txns"&&r)tr.className=rowCls(r);
+  pending=true;renderStats();return true;
+}
+
+/* ---------- filters ---------- */
+function inRange(dateStr){const f=$("fFrom").value,t=$("fTo").value;return(!f||dateStr>=f)&&(!t||dateStr<=t)}
+function hit(o,keys){const q=$("fQ").value.trim().toLowerCase();return!q||keys.some(k=>String(k==="_card"?(cardOf(o.card_last4)?cardLabel(cardOf(o.card_last4)):""):(o[k]??"")).toLowerCase().includes(q))}
+const isCash=x=>x.kind==="Cash withdrawal";
+const isOut=x=>Number(x.amount)<0;
+const poByNum=num=>num?PO.find(p=>normPo(p.po_number)===normPo(num)&&p.status!=="Cancelled"):null;
+const poOf=x=>x.po_request_id?PO.find(q=>q.id===x.po_request_id):poByNum(x.po_number);
+const fuFor=(type,id)=>FU.filter(f=>f.target_type===type&&f.target_id===String(id));
+const TXKEYS=["description","reference","po_number","explanation","notes","_card"];
+const cardOf=l4=>l4?CARDS.find(c=>c.last4===l4):null;
+const cardLabel=c=>`${c.holder} (${c.account==="Not stated"?"":c.account+" "}…${c.last4})`;
+function cardSel(f,v,blank="— not set —"){
+  const known=cardOf(v);
+  const opts=CARDS.filter(c=>c.active||c.last4===v).map(c=>`<option value="${c.last4}"${c.last4===v?" selected":""}>${esc(cardLabel(c))}${c.active?"":" (inactive)"}</option>`).join("");
+  return `<select data-f="${f}" aria-label="Card holder"><option value="">${blank}</option>${opts}${v&&!known?`<option value="${esc(v)}" selected>Unknown card …${esc(v)}</option>`:""}</select>`;
+}
+
+/* ---------- render ---------- */
+function render(){
+  renderStats();
+  const poRows=PO.filter(p=>($("showCancelled").checked||p.status!=="Cancelled")&&inRange(dPart(p.requested_at))&&hit(p,["requested_by","description","supplier","project","po_number","approved_by","notes"]));
+  $("poBody").innerHTML=poRows.length?poRows.map(poRow).join(""):`<tr><td colspan="12" class="empty">No PO requests in this period yet.</td></tr>`;
+  const nopo=TX.filter(x=>isOut(x)&&!isCash(x)&&inRange(x.txn_date)&&(x.match_status==="Missing PO"||x.match_status==="Check"||($("showResolved").checked&&x.match_status==="No PO needed"))&&hit(x,TXKEYS));
+  $("nopoBody").innerHTML=nopo.length?nopo.map(txRow).join(""):`<tr><td colspan="11" class="empty">Nothing missing a PO in this period.</td></tr>`;
+  const cashAll=TX.filter(x=>isCash(x)&&inRange(x.txn_date)&&hit(x,TXKEYS));
+  const cash=cashAll.filter(x=>x.match_status!=="Matched"),cashpo=cashAll.filter(x=>x.match_status==="Matched");
+  $("cashBody").innerHTML=cash.length?cash.map(cashRow).join(""):`<tr><td colspan="10" class="empty">No cash withdrawals without a PO in this period.</td></tr>`;
+  $("cashpoBody").innerHTML=cashpo.length?cashpo.map(cashRow).join(""):`<tr><td colspan="10" class="empty">No cash withdrawals with a PO in this period.</td></tr>`;
+  const withpo=TX.filter(x=>isOut(x)&&!isCash(x)&&inRange(x.txn_date)&&x.match_status==="Matched"&&hit(x,TXKEYS));
+  const cards=CARDS.filter(c=>$("showInactive").checked||c.active);
+  $("cardsBody").innerHTML=cards.length?cards.map(cardRow).join(""):`<tr><td colspan="6" class="empty">No cards yet.</td></tr>`;
+  $("withpoBody").innerHTML=withpo.length?withpo.map(withRow).join(""):`<tr><td colspan="14" class="empty">No bank transactions matched to a PO in this period yet.</td></tr>`;
+}
+function renderStats(){
+  const r=x=>inRange(x.txn_date);
+  const miss=TX.filter(x=>r(x)&&isOut(x)&&!isCash(x)&&x.match_status==="Missing PO");
+  const cashMiss=TX.filter(x=>r(x)&&isCash(x)&&x.match_status==="Missing PO");
+  const open=PO.filter(p=>p.status==="Open"&&inRange(dPart(p.requested_at))&&!TX.some(x=>x.po_request_id===p.id));
+  $("sMissing").textContent=miss.length;$("sCashMissing").textContent=cashMiss.length;$("sOpen").textContent=open.length;
+  $("sMissingAmt").textContent=money([...miss,...cashMiss].reduce((a,x)=>a+Math.abs(Number(x.amount)),0)).replace(/\.\d\d$/,"");
+  const fuOpen=FU.filter(f=>!f.done);$("sFu").textContent=fuOpen.length;$("fuStat").classList.toggle("red",fuOpen.some(f=>f.due&&f.due<today()));
+  $("nPo").textContent=PO.filter(p=>p.status!=="Cancelled"&&inRange(dPart(p.requested_at))).length;
+  $("nNopo").textContent=miss.length;$("nNopo").className="n"+(miss.length?" red":"");
+  $("nCash").textContent=TX.filter(x=>r(x)&&isCash(x)&&x.match_status!=="Matched").length;$("nCash").className="n"+(cashMiss.length?" red":"");
+  $("nCashPo").textContent=TX.filter(x=>r(x)&&isCash(x)&&x.match_status==="Matched").length;
+  $("nCards").textContent=CARDS.filter(c=>c.active).length;
+  $("nWith").textContent=TX.filter(x=>r(x)&&isOut(x)&&!isCash(x)&&x.match_status==="Matched").length;
+}
+const inp=(f,v,t="text",cls="")=>`<input data-f="${f}" type="${t}" value="${esc(v)}" class="${cls}" aria-label="${f}"${t==="number"?' step="0.01" min="0" style="text-align:right"':""}>`;
+const sel=(f,v,opts)=>`<select data-f="${f}" aria-label="${f}">${opts.map(o=>`<option${o===v?" selected":""}>${o}</option>`).join("")}</select>`;
+const KINDS=["Payment","Cash withdrawal","Bank charge","Transfer","Other"],STATUSES=["Missing PO","Matched","No PO needed","Check"];
+function noteBtn(type,id){
+  const fus=fuFor(type,id),open=fus.filter(f=>!f.done).length,key=type+":"+id;
+  return `<button type="button" class="btn sm" data-toggle="${esc(key)}" aria-expanded="${OPEN.has(key)}">${OPEN.has(key)?"Hide":"Open"}${open?` · <span class="open">${open} to do</span>`:fus.length?` · ${fus.length} done`:""}</button>`;
+}
+function detRow(type,id,cols,notes,notesHtml){
+  const key=type+":"+id;if(!OPEN.has(key))return"";
+  const fus=fuFor(type,id).sort((a,b)=>(a.done-b.done)||String(a.due||"9").localeCompare(String(b.due||"9"))||b.created_at.localeCompare(a.created_at));
+  return `<tr class="det" data-t="${type==="po"?"po_requests":"bank_txns"}" data-id="${esc(id)}" data-type="${type}"><td colspan="${cols}"><div class="detgrid">
+    <div><div class="lab"><span>Notes</span></div>${rtBox("notes",notes,notesHtml,"Anything about this one: who you spoke to, invoices, what was agreed…","box")}</div>
+    <div><div class="lab"><span>Follow-ups</span><span>${fus.filter(f=>!f.done).length} to do</span></div>
+      <div class="fu-add"><input data-fuwith placeholder="Follow up with (name)" aria-label="Follow up with"><input type="date" data-fudue aria-label="Due date">
+        <div class="rt" contenteditable="true" role="textbox" aria-label="What needs to happen" data-fucomment data-ph="What needs to happen, e.g. ask Johan for the PO number"></div>
+        <button type="button" class="btn" data-fuadd>Add follow-up</button></div>
+      ${fus.length?`<ul class="fu-list">${fus.map(fuItem).join("")}</ul>`:""}
+    </div></div></td></tr>`;
+}
+function fuItem(f){
+  const late=!f.done&&f.due&&f.due<today();
+  return `<li class="${f.done?"done":""}${late?" late":""}"><input type="checkbox" data-fudone="${f.id}" ${f.done?"checked":""} aria-label="Mark done">
+    <div><div class="fu-meta">${f.follow_up_with?`With <b>${esc(f.follow_up_with)}</b>`:"Follow-up"}${f.due?` · due <span class="${late?"fu-late":""}">${f.due}</span>`:""}</div>
+    <div class="fu-c">${f.comment_html?clean(f.comment_html):esc(f.comment||"")}</div>
+    <div class="fu-meta">Added ${dPart(f.created_at)} by ${esc((f.created_by||"").split("@")[0])}${f.done?` · done ${dPart(f.done_at)} by ${esc((f.done_by||"").split("@")[0])}`:""}</div></div>
+    <button type="button" class="linkbtn" data-fudel="${f.id}">Remove</button></li>`;
+}
+function poRow(p){
+  const paid=TX.filter(x=>x.po_request_id===p.id||(p.po_number&&!x.po_request_id&&normPo(x.po_number)===normPo(p.po_number)));
+  const paidTxt=paid.length?paid.map(x=>`${x.txn_date}<br>R${money(Math.abs(x.amount))}`).join("<br>"):'<span class="pill grey">Not yet</span>';
+  const cls=p.status==="Cancelled"?"muted":(paid.length?"ok":"");
+  return `<tr data-t="po_requests" data-id="${p.id}" class="${cls}">
+   <td>${inp("_date",dPart(p.requested_at),"date")}</td><td>${inp("_time",tPart(p.requested_at),"time")}</td>
+   <td>${inp("requested_by",p.requested_by)}</td><td>${rtBox("description",p.description,p.description_html,"What is it for?")}</td>
+   <td class="num">${inp("amount",p.amount==null?"":Number(p.amount).toFixed(2),"number")}</td><td>${inp("supplier",p.supplier)}</td><td>${inp("project",p.project)}</td>
+   <td>${inp("po_number",p.po_number,"text","mono")}</td><td>${inp("approved_by",p.approved_by)}</td>
+   <td>${sel("status",p.status,["Open","Matched","Cancelled"])}</td>
+   <td><span class="ro mono">${paidTxt}</span></td><td>${noteBtn("po",p.id)}</td></tr>`+detRow("po",p.id,12,p.notes,p.notes_html);
+}
+function cardRow(c){
+  const n=TX.filter(x=>x.card_last4===c.last4).length;
+  return `<tr data-t="po_cards" data-id="${c.id}" class="${c.active?"":"muted"}"><td>${inp("holder",c.holder)}</td><td>${sel("account",c.account,["MarketLink","Main","Not stated"])}</td>
+   <td>${inp("last4",c.last4,"text","mono")}</td><td><input type="checkbox" data-f="active" ${c.active?"checked":""} aria-label="Active" style="width:18px;height:18px;margin:6px"></td>
+   <td>${inp("notes",c.notes)}</td><td class="num mono"><span class="ro">${n}</span></td></tr>`;
+}
+function rowCls(x){return x.match_status==="Missing PO"?"missing":x.match_status==="Check"?"check":x.match_status==="Matched"?"ok":"muted"}
+const txBase=x=>`<td>${inp("txn_date",x.txn_date,"date")}</td><td>${inp("description",x.description)}</td><td>${inp("reference",x.reference,"text","mono")}</td>
+   <td class="num">${inp("_amount",Math.abs(Number(x.amount)).toFixed(2),"number","mono flag")}</td><td>${cardSel("card_last4",x.card_last4)}</td>`;
+function txRow(x){
+  return `<tr data-t="bank_txns" data-id="${esc(x.id)}" class="${rowCls(x)}">${txBase(x)}
+   <td>${sel("kind",x.kind,KINDS)}</td><td>${inp("po_number",x.po_number,"text","mono")}</td>
+   <td>${sel("match_status",x.match_status,STATUSES)}</td><td>${rtBox("explanation",x.explanation,x.explanation_html,"Why is there no PO?")}</td>
+   <td class="mono"><span class="ro">${x.alerted_at?dPart(x.alerted_at):""}</span></td><td>${noteBtn("txn",x.id)}</td></tr>`+detRow("txn",x.id,11,x.notes,x.notes_html);
+}
+function cashRow(x){
+  const p=poOf(x);
+  return `<tr data-t="bank_txns" data-id="${esc(x.id)}" class="${rowCls(x)}">${txBase(x)}
+   <td>${inp("po_number",x.po_number,"text","mono")}</td>
+   <td><span class="ro">${p?esc([p.requested_by,p.description].filter(Boolean).join(" – ")):(x.po_number?'<span class="pill warn">PO # not found</span>':"")}</span></td>
+   <td>${sel("match_status",x.match_status,STATUSES)}</td><td>${rtBox("explanation",x.explanation,x.explanation_html,"What was the cash for?")}</td>
+   <td>${noteBtn("txn",x.id)}</td></tr>`+detRow("txn",x.id,10,x.notes,x.notes_html);
+}
+function withRow(x){
+  const p=poOf(x)||{};
+  return `<tr data-t="bank_txns" data-id="${esc(x.id)}" class="${rowCls(x)}">${txBase(x)}
+   <td>${sel("kind",x.kind,KINDS)}</td><td>${inp("po_number",x.po_number,"text","mono")}</td>
+   <td><span class="ro">${esc(p.requested_by||"")}</span></td><td><span class="ro">${p.description_html?richOf(p.description,p.description_html):esc(p.description||"")}</span></td>
+   <td><span class="ro">${esc(p.supplier||"")}</span></td><td><span class="ro">${esc(p.project||"")}</span></td>
+   <td>${sel("match_status",x.match_status,STATUSES)}</td><td>${rtBox("explanation",x.explanation,x.explanation_html,"Notes on the match")}</td>
+   <td>${noteBtn("txn",x.id)}</td></tr>`+detRow("txn",x.id,14,x.notes,x.notes_html);
+}
+
+/* ---------- editing: plain inputs and selects ---------- */
+document.addEventListener("change",e=>{
+  const el=e.target,tr=el.closest("tr[data-t]");if(!tr||!el.dataset.f)return;
+  const t=tr.dataset.t,id=tr.dataset.id,f=el.dataset.f;let patch={};
+  if(f==="_date"||f==="_time"){
+    const d=tr.querySelector('[data-f="_date"]').value,tm=tr.querySelector('[data-f="_time"]').value||"00:00";
+    if(!d)return;patch.requested_at=new Date(`${d}T${tm}:00+02:00`).toISOString();
+  }else if(f==="amount"){patch.amount=el.value===""?null:Number(el.value)}
+  else if(f==="_amount"){if(el.value==="")return;patch.amount=-Math.abs(Number(el.value))}
+  else if(f==="txn_date"){if(!el.value)return;patch.txn_date=el.value}
+  else if(f==="active"){patch.active=el.checked}
+  else if(f==="last4"){const v=el.value.replace(/\D/g,"").slice(-4);if(v.length!==4){flash("Last 4 digits must be 4 numbers",true);return}el.value=v;patch.last4=v}
+  else if(f==="holder"){if(!el.value.trim()){flash("Card holder can't be empty",true);return}patch.holder=el.value.trim()}
+  else patch[f]=el.value.trim()||null;
+  if(t==="bank_txns"&&f==="po_number"){
+    const p=poByNum(patch.po_number);
+    patch.po_request_id=p?p.id:null;
+    if(p)patch.match_status="Matched";
+    else if(!patch.po_number){const cur=TX.find(x=>x.id===id);if(cur&&cur.match_status==="Matched")patch.match_status="Missing PO"}
+    else patch.match_status="Check";
+    const s=tr.querySelector('[data-f="match_status"]');if(s&&patch.match_status)s.value=patch.match_status;
+  }
+  if(t==="po_requests"&&f==="po_number"&&patch.po_number){
+    TX.filter(x=>normPo(x.po_number)===normPo(patch.po_number)&&!x.po_request_id).forEach(x=>save("bank_txns",x.id,{po_request_id:id,match_status:"Matched"}));
+  }
+  if(t==="bank_txns"&&f==="match_status"&&el.value!=="Matched"){const cur=TX.find(x=>x.id===id);if(cur&&cur.po_request_id&&el.value==="Missing PO")patch.po_request_id=null}
+  save(t,id,patch,tr.classList.contains("det")?null:tr);
+});
+/* ---------- editing: rich text boxes save when you click away ---------- */
+document.addEventListener("focusout",e=>{
+  const el=e.target;if(!el.dataset||!el.dataset.rtf)return;
+  const tr=el.closest("tr[data-t]");if(!tr)return;
+  const t=tr.dataset.t,id=tr.dataset.id,f=el.dataset.rtf;
+  const row=(t==="po_requests"?PO:TX).find(x=>x.id===id)||{};
+  const html=clean(el.innerHTML),text=plainOf(html);
+  if(text===(row[f]||"")&&html===(row[f+"_html"]||richOf(row[f],row[f+"_html"])))return;
+  save(t,id,{[f]:text||null,[f+"_html"]:html||null});
+});
+/* ---------- notes panel & follow-ups ---------- */
+document.addEventListener("click",async e=>{
+  const tg=e.target.closest("[data-toggle]");
+  if(tg){const k=tg.dataset.toggle;OPEN.has(k)?OPEN.delete(k):OPEN.add(k);render();if(OPEN.has(k)){const r=document.querySelector(`tr.det[data-id="${CSS.escape(k.split(":").slice(1).join(":"))}"] .rt`);if(r)r.focus()}return}
+  const add=e.target.closest("[data-fuadd]");
+  if(add){
+    const tr=add.closest("tr.det"),c=tr.querySelector("[data-fucomment]"),ch=clean(c.innerHTML),txt=plainOf(ch);
+    const w=tr.querySelector("[data-fuwith]").value.trim(),due=tr.querySelector("[data-fudue]").value||null;
+    if(!txt&&!w){flash("Type what needs to happen first",true);c.focus();return}
+    const {error}=await sb.from("po_followups").insert({target_type:tr.dataset.type,target_id:tr.dataset.id,follow_up_with:w||null,due,comment:txt||null,comment_html:ch||null,created_by:me});
+    if(error){flash("Couldn't add the follow-up: "+error.message,true);return}
+    flash("Follow-up added");await load();return;
+  }
+  const del=e.target.closest("[data-fudel]");
+  if(del){
+    if(del.dataset.armed!=="1"){del.dataset.armed="1";del.textContent="Click again to remove";setTimeout(()=>{if(del.isConnected){del.dataset.armed="";del.textContent="Remove"}},3000);return}
+    const {error}=await sb.from("po_followups").delete().eq("id",del.dataset.fudel);
+    if(error)flash("Couldn't remove it: "+error.message,true);else load();
+  }
+});
+document.addEventListener("change",async e=>{
+  const cb=e.target.closest("[data-fudone]");if(!cb)return;
+  const done=cb.checked;
+  const {error}=await sb.from("po_followups").update({done,done_at:done?new Date().toISOString():null,done_by:done?me:null}).eq("id",cb.dataset.fudone);
+  if(error){flash("Couldn't update: "+error.message,true);cb.checked=!done;return}
+  flash(done?"Marked done":"Marked not done");load();
+});
+
+/* ---------- tabs, filters, add forms ---------- */
+function setTab(n){tab=n;document.querySelectorAll(".tab").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===n));["po","nopo","cash","cashpo","withpo","cards"].forEach(k=>$("tab-"+k).hidden=k!==n)}
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
+document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>setTab(b.dataset.go));
+$("fuStat").onclick=()=>{/* open every row that has an open follow-up */
+  FU.filter(f=>!f.done).forEach(f=>OPEN.add(f.target_type+":"+f.target_id));render();};
+["fFrom","fTo","showCancelled","showResolved","showInactive"].forEach(i=>$(i).addEventListener("change",render));
+$("fQ").addEventListener("input",render);
+$("refresh").onclick=load;
+document.querySelectorAll("dialog [data-close]").forEach(b=>b.onclick=()=>b.closest("dialog").close());
+$("addPo").onclick=()=>{const f=$("poForm");f.reset();f.requested_at.value=new Date(Date.now()+2*3600e3).toISOString().slice(0,16);$("poDlg").showModal()};
+$("poForm").addEventListener("submit",async e=>{
+  e.preventDefault();const f=e.target,v=k=>f[k].value.trim()||null;
+  const row={requested_at:new Date(f.requested_at.value+":00+02:00").toISOString(),requested_by:v("requested_by"),description:v("description"),
+    amount:f.amount.value===""?null:Number(f.amount.value),supplier:v("supplier"),project:v("project"),po_number:v("po_number"),approved_by:v("approved_by"),source:"manual"};
+  const {error}=await sb.from("po_requests").insert(row);
+  $("poDlg").close();if(error){flash("Couldn't save: "+error.message,true);return}
+  setTab("po");load();
+});
+document.querySelectorAll("[data-addtx]").forEach(b=>b.onclick=()=>{const f=$("txForm");f.reset();f.txn_date.value=today();if(b.dataset.addtx)f.kind.value=b.dataset.addtx;$("txCard").innerHTML=cardSel("card_last4","").replace('data-f="card_last4"','name="card_last4"');$("txDlg").showModal()});
+$("txForm").addEventListener("submit",async e=>{
+  e.preventDefault();const f=e.target,v=k=>f[k].value.trim()||null;
+  const p=poByNum(v("po_number"));
+  const row={id:"manual-"+crypto.randomUUID(),txn_date:f.txn_date.value,description:v("description"),reference:v("reference"),amount:-Math.abs(Number(f.amount.value)),
+    kind:f.kind.value,card_last4:f.card_last4?f.card_last4.value||null:null,po_number:v("po_number"),po_request_id:p?p.id:null,match_status:p?"Matched":(v("po_number")?"Check":"Missing PO"),source:"manual"};
+  const {error}=await sb.from("bank_txns").insert(row);
+  $("txDlg").close();if(error){flash("Couldn't save: "+error.message,true);return}
+  load();
+});
+$("addCard").onclick=async()=>{
+  const used=new Set(CARDS.map(c=>c.last4));let l4="0000";for(let i=0;i<10000&&used.has(l4);i++)l4=String(i).padStart(4,"0");
+  const {error}=await sb.from("po_cards").insert({holder:"New card holder",account:"Not stated",last4:l4,active:true});
+  if(error){flash("Couldn't add: "+error.message,true);return}
+  flash("Card added – type the holder's name and last 4 digits");await load();
+};
+boot();
+</script>
+</body>
+</html>
