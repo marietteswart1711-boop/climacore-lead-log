@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>The Sales Force</title>
+<meta name="apple-mobile-web-app-title" content="Sales Force">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#14212b">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#f3f6f8; --panel:#ffffff; --ink:#14212b; --muted:#5d6f7c; --line:#d9e2e8; --soft:#e9eff3;
+  --accent:#0b6fa4; --accent-ink:#ffffff; --accent-soft:#dcedf7;
+  --warn:#b45309; --warn-bg:#fdf0dc; --bad:#9f1d2d; --bad-bg:#f9e0e3; --good:#15803d; --good-bg:#dcf3e3; --grey-bg:#eceff1;
+  --f-display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0e161c; --panel:#152129; --ink:#e3ecf1; --muted:#93a6b3; --line:#26353f; --soft:#1b2a33;
+  --accent:#4fb3e8; --accent-ink:#06202e; --accent-soft:#163447;
+  --warn:#f2a65a; --warn-bg:#3a2712; --bad:#f08391; --bad-bg:#3c1820; --good:#5fd08a; --good-bg:#123522; --grey-bg:#222d34; color-scheme:dark}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 var(--f-body);padding:20px max(16px,env(safe-area-inset-left)) 48px}
+.wrap{max-width:1320px;margin:0 auto;display:grid;gap:16px}
+h1{font:800 clamp(24px,4vw,32px)/1.1 var(--f-display);font-stretch:85%;margin:0}
+h2{font:700 18px/1.2 var(--f-display);font-stretch:90%;margin:0}
+h3{font:700 14px var(--f-body);margin:0}
+.head{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-end;justify-content:space-between}
+.sub{color:var(--muted);margin:4px 0 0;font-size:13px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button,.btn{font:600 13px var(--f-body);border-radius:6px;padding:7px 13px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button.small{padding:4px 9px;font-size:12px}
+button:hover{border-color:var(--accent)}
+.linkbtn{border:0;background:none;color:var(--accent);padding:0;font:600 12px var(--f-body);cursor:pointer}
+input,select,textarea{font:14px var(--f-body);padding:7px 9px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);min-width:0}
+textarea{resize:vertical;min-height:60px;width:100%}
+:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.tabs button{border:0;border-bottom:3px solid transparent;border-radius:0;background:none;padding:8px 12px;color:var(--muted)}
+.tabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--accent)}
+.tabs .count{font:500 11px var(--f-mono);background:var(--soft);border-radius:9px;padding:0 6px;margin-left:4px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.filters input[type=search]{flex:1 1 220px}
+.tbl-wrap{overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--panel);max-height:70vh}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line);vertical-align:top}
+th{position:sticky;top:0;background:var(--soft);font:600 11px var(--f-body);text-transform:uppercase;letter-spacing:.04em;color:var(--muted);white-space:nowrap;z-index:1}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--soft)}
+td.num,th.num{text-align:right;font-family:var(--f-mono);white-space:nowrap}
+.pill{display:inline-block;font:600 11px var(--f-body);border-radius:10px;padding:1px 8px;white-space:nowrap}
+.s-Open{background:var(--accent-soft);color:var(--accent)} .s-Quote{background:var(--warn-bg);color:var(--warn)}
+.s-Won{background:var(--good-bg);color:var(--good)} .s-Lost{background:var(--bad-bg);color:var(--bad)} .s-On{background:var(--grey-bg);color:var(--muted)}
+.late{color:var(--bad);font-weight:600}
+.flag{display:inline-block;font:600 11px var(--f-body);color:var(--bad);background:var(--bad-bg);border-radius:4px;padding:0 6px;margin:1px 4px 1px 0}
+.flag.w{color:var(--warn);background:var(--warn-bg)}
+.muted{color:var(--muted)}
+.list{display:grid;gap:6px;margin-top:10px}
+.item{border:1px solid var(--line);border-radius:7px;padding:8px 10px;cursor:pointer;background:var(--panel)}
+.item:hover{border-color:var(--accent)}
+.item .t{font-weight:600}
+.empty{color:var(--muted);font-size:13px;margin-top:8px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.kpi{background:var(--panel);padding:10px 12px}
+.kpi .v{font:700 22px var(--f-display)}
+.kpi .l{font-size:12px;color:var(--muted)}
+.bar{height:6px;background:var(--soft);border-radius:3px;overflow:hidden;margin-top:4px}
+.bar i{display:block;height:100%;background:var(--accent)}
+dialog{border:1px solid var(--line);border-radius:12px;padding:0;background:var(--panel);color:var(--ink);width:min(920px,96vw);max-height:92vh}
+dialog::backdrop{background:rgba(10,20,28,.5)}
+.dlg-h{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--panel);z-index:2}
+.dlg-b{padding:14px 18px;display:grid;gap:16px}
+fieldset{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:0}
+legend{font:700 12px var(--f-body);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:0 4px}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.fgrid label{display:grid;gap:3px;font-size:12px;color:var(--muted)}
+.fgrid label.chk{display:flex;align-items:center;gap:6px;color:var(--ink);font-size:13px}
+.fgrid label.wide{grid-column:1/-1}
+.warnbox{background:var(--bad-bg);color:var(--bad);border-radius:6px;padding:8px 10px;font-weight:600}
+.note{border-left:3px solid var(--line);padding:4px 10px;margin:6px 0}
+.note .by{font-size:12px;color:var(--muted)}
+.brief{border:1px solid var(--line);border-radius:8px;margin-top:10px}
+.brief summary{padding:10px 12px;cursor:pointer;font-weight:600}
+.brief .body{padding:0 12px 12px;overflow:auto}
+.login{max-width:420px;margin:12vh auto 0;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:24px;display:grid;gap:12px}
+.msg{font-size:13px;color:var(--muted)} .msg.err{color:var(--bad)}
+.who-bar{font-size:12px;color:var(--muted);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.rules li{margin:3px 0}
+@media (max-width:640px){th.hide-sm,td.hide-sm{display:none}}
+</style>
+</head>
+<body>
+<form class="login" id="login" hidden>
+  <div class="msg" style="text-transform:uppercase;letter-spacing:.07em;font-weight:600">Hydrocore Group</div>
+  <h1>The Sales Force</h1>
+  <input id="loginEmail" type="email" placeholder="Work email" autocomplete="username" required>
+  <input id="loginPw" type="password" placeholder="Password" autocomplete="current-password" required>
+  <button class="primary" type="submit">Sign in</button>
+  <div class="msg" id="loginMsg"></div>
+</form>
+
+<div class="wrap" id="app" hidden>
+  <div class="head">
+    <div>
+      <h1>The Sales Force</h1>
+      <p class="sub" id="sync">Loading…</p>
+      <div class="who-bar"><span id="whoami"></span><button class="linkbtn" id="pwBtn" type="button">Change password</button><button class="linkbtn" id="signOut" type="button">Sign out</button></div>
+      <form id="pwForm" class="actions" hidden style="margin-top:6px"><input id="newPw" type="password" placeholder="New password (8+ characters)" autocomplete="new-password"><button type="submit">Save</button><span class="msg" id="pwMsg"></span></form>
+    </div>
+    <div class="actions">
+      <button class="primary" id="newLead" type="button">+ Log a lead or call</button>
+      <button id="csvBtn" type="button">Export CSV</button>
+    </div>
+  </div>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="day" aria-selected="true">My day <span class="count" id="c-day">0</span></button>
+    <button role="tab" data-tab="leads" aria-selected="false">Leads &amp; calls <span class="count" id="c-leads">0</span></button>
+    <button role="tab" data-tab="targets" aria-selected="false">Target lists</button>
+    <button role="tab" data-tab="score" aria-selected="false">Scoreboard</button>
+    <button role="tab" data-tab="ai" aria-selected="false">Sales manager</button>
+    <button role="tab" data-tab="rules" aria-selected="false">Partners &amp; rules</button>
+  </nav>
+
+  <!-- MY DAY -->
+  <section data-pane="day">
+    <div class="filters" style="margin-bottom:12px"><label class="muted">Show for <select id="dayRep"></select></label></div>
+    <div class="grid" id="dayGrid"></div>
+  </section>
+
+  <!-- LEADS -->
+  <section data-pane="leads" hidden>
+    <div class="filters" style="margin-bottom:10px">
+      <input type="search" id="q" placeholder="Search client, contact, area, notes…">
+      <select id="fCo"><option value="">All companies</option></select>
+      <select id="fRep"><option value="">All reps</option></select>
+      <select id="fStatus"><option value="">All statuses</option></select>
+      <label class="muted"><input type="checkbox" id="fFlag"> Needs action only</label>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Date</th><th>Client</th><th>Company</th><th>Rep</th><th class="hide-sm">Source</th><th class="hide-sm">Outcome</th><th>Next action</th><th>Status</th><th class="num">Quote (R)</th></tr></thead>
+      <tbody id="leadRows"></tbody>
+    </table></div>
+  </section>
+
+  <!-- TARGETS -->
+  <section data-pane="targets" hidden>
+    <div class="filters" style="margin-bottom:10px">
+      <select id="tList"></select>
+      <select id="tPri"><option value="">All priorities</option><option>A</option><option>B</option><option>C</option></select>
+      <select id="tStatus"><option value="">Any status</option><option>Not started</option><option>In progress</option><option>Converted to lead</option><option>Do not pursue</option></select>
+      <input type="search" id="tq" placeholder="Search client, area, sector, owner…">
+      <label class="muted"><input type="checkbox" id="tMine"> Mine only</label>
+    </div>
+    <p class="msg" id="tInfo"></p>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th class="num">#</th><th>Client</th><th>Pri</th><th class="hide-sm">Sector</th><th class="hide-sm">Why it fits</th><th class="num hide-sm">Group spend</th><th>Owner / rep</th><th class="hide-sm">Contact</th><th>Status</th><th></th></tr></thead>
+      <tbody id="tRows"></tbody>
+    </table></div>
+  </section>
+
+  <!-- SCOREBOARD -->
+  <section data-pane="score" hidden>
+    <div class="filters" style="margin-bottom:10px"><label class="muted">Month <select id="sMonth"></select></label></div>
+    <div class="grid" id="scoreGrid"></div>
+    <div class="panel" style="margin-top:12px"><h2>Commission on won leads</h2><p class="sub">4% to the rep who closes, 1% to the rep who introduced it, on invoices excl. VAT for 12 months from client start. Paid after the client pays. No log, no commission.</p>
+      <div class="tbl-wrap" style="margin-top:10px"><table><thead><tr><th>Client</th><th>Company</th><th>Closed by</th><th class="num">Value</th><th class="num">4%</th><th>Introduced by</th><th class="num">1%</th><th>Client start</th><th>Valid until</th></tr></thead><tbody id="commRows"></tbody></table></div>
+    </div>
+  </section>
+
+  <!-- AI MANAGER -->
+  <section data-pane="ai" hidden>
+    <div class="panel"><h2>Your AI sales manager</h2>
+      <p class="sub">Every weekday morning the sales manager reads this log, checks it against the Playbook and emails each rep their list for the day. Mondays it sends the 08:00 huddle agenda, Fridays the pipeline summary, and on the 1st Tuesday a full review to Cecil and Mariette. Anything 2+ working days overdue is escalated. Briefings also appear here.</p>
+    </div>
+    <div id="briefs"></div>
+    <div class="panel" id="mgrPanel" hidden style="margin-top:12px">
+      <h2>Manager settings</h2>
+      <div class="grid" style="margin-top:10px">
+        <div>
+          <h3>Email sending</h3>
+          <p class="sub" id="mailStatus">Checking…</p>
+          <div class="fgrid" style="margin-top:8px">
+            <label>Mail server<input id="mHost"></label><label>Port<input id="mPort"></label>
+            <label>Send from (login)<input id="mUser" type="email"></label><label>Password<input id="mPass" type="password" placeholder="Leave blank to keep" autocomplete="new-password"></label>
+          </div>
+          <div class="actions" style="margin-top:8px"><button id="mSave" type="button">Save mail settings</button><span class="msg" id="mMsg"></span></div>
+        </div>
+        <div>
+          <h3>Team</h3>
+          <div id="teamList" class="list"></div>
+        </div>
+        <div>
+          <h3>Load Cecil's target lists</h3>
+          <p class="sub">One-time import of the target lists, referral partners and insurer list (sales-force-import.json). Only loads into empty lists.</p>
+          <input type="file" id="importFile" accept=".json,application/json" style="margin-top:8px">
+          <p class="msg" id="importMsg"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RULES -->
+  <section data-pane="rules" hidden>
+    <div class="grid">
+      <div class="panel"><h2>The three rules</h2><ol class="rules">
+        <li><b>Ask about all four.</b> Every client gets asked about the other group companies.</li>
+        <li><b>Log it the same day.</b> Every lead and call goes on this log before you go home.</li>
+        <li><b>Act within one day.</b> A referred lead is contacted within one working day, and the referrer hears back.</li></ol>
+        <h3 style="margin-top:10px">Response times</h3><ul class="rules"><li>Contact in 1 working day, visit in 3, quote within 2 of the visit.</li><li>Update status weekly so the referrer never has to chase.</li><li>Brand-new prospect: first to log it owns it. Lapses after 90 days with no activity.</li><li>Can't act within a working day? Say so in Group Leads so someone else can.</li></ul>
+        <h3 style="margin-top:10px">Never</h3><ul class="rules"><li>Sell to insurer clients (see list below).</li><li>Promise prices or dates for a sister company.</li><li>Go around a plumbing partner. Leeukoppie and Orchards go through Dean (Atlantic Plumbing).</li><li>Sit on a lead.</li></ul>
+      </div>
+      <div class="panel"><h2>Who owns the client</h2><ul class="rules">
+        <li>Existing DC24 client: Jayd</li><li>Existing Leakfind commercial or relining client: Bianca / Marco / Shane</li><li>Existing Climacore client: Lance</li><li>New DC24 client Bianca closes: Jayd stays account lead, Bianca earns the 4%</li><li>Brand new prospect: first to log it (lapses after 90 days)</li><li>Client of more than one company: the company with the highest sales</li><li>Insurer-referred policyholder: not cross-sold</li></ul>
+        <h3 style="margin-top:10px">DC24 quote in 5 steps</h3><ol class="rules"><li>Lead in, site assessed</li><li>Bianca does the Data Box report and QuickBooks quote</li><li>Jayd checks it</li><li>Quotes Group approves</li><li>Quote goes to the client</li></ol>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:12px"><h2>Referral partners <span class="muted" id="pCount"></span></h2><p class="sub">Relining Division owns every partner relationship. Ask every relining booking who referred it and record it.</p>
+      <div class="tbl-wrap" style="margin-top:10px;max-height:50vh"><table><thead><tr><th>Partner</th><th>Status</th><th>Tier</th><th>Contact</th><th>Owner</th><th class="num">Group sales</th><th>Notes</th></tr></thead><tbody id="pRows"></tbody></table></div></div>
+    <div class="panel" style="margin-top:12px"><h2>Insurers: do not cross-sell <span class="muted" id="iCount"></span></h2>
+      <div class="tbl-wrap" style="margin-top:10px;max-height:40vh"><table><thead><tr><th>Insurer / client</th><th>Also known as</th></tr></thead><tbody id="iRows"></tbody></table></div></div>
+  </section>
+</div>
+
+<dialog id="dlg">
+  <form id="leadForm" method="dialog">
+    <div class="dlg-h"><h2 id="dlgTitle">Lead</h2><div class="actions"><button type="button" id="dlgClose">Close</button><button class="primary" type="submit" id="dlgSave">Save</button></div></div>
+    <div class="dlg-b">
+      <div class="warnbox" id="insWarn" hidden>This looks like an insurer client. Insurer-referred policyholders are not cross-sold.</div>
+      <fieldset><legend>Lead</legend><div class="fgrid">
+        <label>Date<input type="date" name="date" required></label>
+        <label>Company sold for<select name="company_sold_for" data-opts="companies"></select></label>
+        <label>Rep logging it<select name="rep" data-opts="reps"></select></label>
+        <label>Lead source<select name="lead_source" data-opts="sources"></select></label>
+        <label>Introduced by (rep)<select name="introduced_by" data-opts="repsBlank"></select></label>
+        <label>How hot<select name="heat" data-opts="heat"></select></label>
+        <label>Industry<select name="industry" data-opts="industries"></select></label>
+        <label>Area / suburb<input name="area"></label>
+      </div></fieldset>
+      <fieldset><legend>Client</legend><div class="fgrid">
+        <label>Client<input name="client" required list="clientList"></label>
+        <label>Contact person<input name="contact_person"></label>
+        <label>Phone<input name="phone"></label>
+        <label>Email<input name="email" type="text"></label>
+        <label class="wide">Site address<input name="site_address"></label>
+      </div></fieldset>
+      <fieldset><legend>Call and next step</legend><div class="fgrid">
+        <label>Call type<select name="call_type" data-opts="callTypes"></select></label>
+        <label>Outcome<select name="outcome" data-opts="outcomes"></select></label>
+        <label>First contact made<input type="date" name="first_contact_date"></label>
+        <label>Site visit date<input type="date" name="visit_date"></label>
+        <label class="wide">Next action<input name="next_action" placeholder="What happens next?"></label>
+        <label>Next action date<input type="date" name="next_action_date"></label>
+      </div></fieldset>
+      <fieldset><legend>Quote steps</legend><div class="fgrid">
+        <label class="chk"><input type="checkbox" name="site_assessment_done"> Site assessment done</label>
+        <label class="chk"><input type="checkbox" name="databox_loaded"> Loaded on Data Box</label>
+        <label class="chk"><input type="checkbox" name="details_verified"> Address and numbers verified</label>
+        <label>Data Box report no.<input name="databox_report_no"></label>
+        <label>QuickBooks quote no.<input name="qb_quote_no"></label>
+        <label>Quote value excl VAT (R)<input name="quote_value" inputmode="decimal"></label>
+        <label>Checked by<select name="checked_by" data-opts="repsBlank"></select></label>
+        <label>Checked on<input type="date" name="checked_date"></label>
+        <label>Quotes Group approved<input type="date" name="quotes_group_approved_date"></label>
+        <label>Sent to client<input type="date" name="sent_to_client_date"></label>
+      </div></fieldset>
+      <fieldset><legend>Result</legend><div class="fgrid">
+        <label>Status<select name="status" data-opts="statuses"></select></label>
+        <label>Closed by (rep)<select name="closed_by" data-opts="repsBlank"></select></label>
+        <label>Client start date<input type="date" name="client_start_date"></label>
+        <label class="wide">Notes<textarea name="notes"></textarea></label>
+      </div><p class="msg" id="commLine"></p></fieldset>
+      <fieldset id="actBox" hidden><legend>Activity</legend>
+        <div class="actions"><input id="actText" placeholder="Add an update (who you spoke to, what was agreed)" style="flex:1 1 300px"><button type="button" id="actAdd">Add update</button></div>
+        <div id="actList"></div>
+      </fieldset>
+      <p class="msg" id="dlgMsg"></p>
+    </div>
+  </form>
+</dialog>
+<datalist id="clientList"></datalist>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+(()=>{
+const SUPABASE_URL="https://gjrmxwwujudgxkqkpyby.supabase.co";
+const SUPABASE_KEY="sb_publishable_EyqmNpJcErSFmE2BO9znAA_UFNmOlxX";
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const money=n=>n==null||n===""?"":Number(n).toLocaleString("en-ZA",{maximumFractionDigits:0});
+const todayStr=()=>new Date(Date.now()+2*3600e3).toISOString().slice(0,10);
+const fmtD=d=>d?new Date(d+"T00:00:00").toLocaleDateString("en-ZA",{day:"numeric",month:"short"}):"";
+const OPTS={
+  companies:["DC24","Climacore","Leakfind","Reline24","Electricore"],
+  sources:["","Jayd list","Own list","MD instruction","Introduction from sister company","Referral partner","Target list","Website / inbound","Existing client"],
+  industries:["","Butcher","Restaurant","Hotel","Factory","Food processing","School","Body corporate","Retail","Office","Municipal","Medical","Property group","Other"],
+  callTypes:["","Cold call","Follow-up call","Meeting","Site assessment","Email","WhatsApp"],
+  outcomes:["","No answer","Call back","Not interested","Interested - send info","Meeting booked","Site assessment booked","Quote requested"],
+  statuses:["Open","Quote sent","Won","Lost","On hold"],
+  heat:["","Hot","Warm","Cold"]
+};
+let sb,me="",meName="",isMgr=false,team=[],leads=[],flags={},acts=[],targets=[],partners=[],insurers=[],briefs=[],tab="day",editing=null;
+const reps=()=>team.filter(t=>t.active).map(t=>t.name);
+function fillSelect(sel,key){
+  const list=key==="reps"?reps():key==="repsBlank"?["",...reps()]:OPTS[key];
+  const cur=sel.value;sel.innerHTML=list.map(v=>`<option value="${esc(v)}">${esc(v||"—")}</option>`).join("");if(cur)sel.value=cur;
+}
+const workdays=(a,b)=>{if(!a||!b)return 0;let d=new Date(a+"T00:00:00"),e=new Date(b+"T00:00:00"),n=0;while(d<e){d.setDate(d.getDate()+1);const w=d.getDay();if(w&&w<6)n++}return n};
+function leadFlags(l){
+  const t=todayStr(),f=[],open=l.status==="Open"||l.status==="On hold";
+  if(open&&l.next_action_date&&l.next_action_date<t)f.push(["Next action overdue","b"]);
+  if(l.status==="Open"&&["Introduction from sister company","Referral partner"].includes(l.lead_source)&&!l.first_contact_date&&workdays(l.date,t)>1)f.push(["Referral not contacted in 1 day","b"]);
+  if(l.status==="Open"&&l.first_contact_date&&!l.visit_date&&!l.site_assessment_done&&workdays(l.first_contact_date,t)>3)f.push(["Visit overdue (3 days)","b"]);
+  if(l.status==="Open"&&l.visit_date&&!l.sent_to_client_date&&workdays(l.visit_date,t)>2)f.push(["Quote overdue (2 days)","b"]);
+  if(open&&l.last_activity_at&&(Date.now()-new Date(l.last_activity_at))>75*864e5)f.push(["Ownership lapses at 90 days","w"]);
+  else if(open&&l.last_activity_at&&(Date.now()-new Date(l.last_activity_at))>14*864e5)f.push(["No activity 14 days","w"]);
+  if(l.status==="Quote sent"&&l.sent_to_client_date&&workdays(l.sent_to_client_date,t)>5&&(Date.now()-new Date(l.last_activity_at))>7*864e5)f.push(["Follow up the quote","w"]);
+  if(l.status==="Open"&&!l.next_action_date)f.push(["No next action set","w"]);
+  if(isInsurer(l.client))f.push(["Insurer client: do not cross-sell","b"]);
+  return f;
+}
+const norm=s=>String(s||"").toLowerCase().replace(/\(pty\)|pty|ltd|\bcc\b|[^a-z0-9]/g,"");
+let insSet=new Set();
+const isInsurer=c=>{const n=norm(c);return n.length>3&&insSet.has(n)};
+const pill=s=>`<span class="pill s-${esc((s||"").split(" ")[0])}">${esc(s||"")}</span>`;
+
+/* ---------- MY DAY ---------- */
+function renderDay(){
+  const who=$("dayRep").value;const t=todayStr();
+  const mine=leads.filter(l=>!who||l.rep===who||l.closed_by===who||l.introduced_by===who&&l.status==="Open");
+  const card=(title,desc,list,fmt)=>`<div class="panel"><h2>${title} <span class="muted">(${list.length})</span></h2><p class="sub">${desc}</p><div class="list">${list.length?list.slice(0,40).map(fmt).join(""):`<p class="empty">Nothing here.</p>`}</div></div>`;
+  const row=l=>`<div class="item" data-id="${l.id}"><div class="t">${esc(l.client)} <span class="muted">· ${esc(l.company_sold_for||"")} · ${esc(l.rep||"")}</span></div><div>${esc(l.next_action||"No next action")}${l.next_action_date?` <span class="${l.next_action_date<t?"late":"muted"}">(${fmtD(l.next_action_date)})</span>`:""}</div><div>${leadFlags(l).map(f=>`<span class="flag ${f[1]==="w"?"w":""}">${esc(f[0])}</span>`).join("")}</div></div>`;
+  const open=mine.filter(l=>l.status==="Open"||l.status==="On hold");
+  const overdue=open.filter(l=>l.next_action_date&&l.next_action_date<t);
+  const dueToday=open.filter(l=>l.next_action_date===t);
+  const sla=open.filter(l=>leadFlags(l).some(f=>/Referral|Visit overdue|Quote overdue/.test(f[0])));
+  const quotes=mine.filter(l=>l.status==="Quote sent");
+  const stale=open.filter(l=>leadFlags(l).some(f=>/14 days|90 days|No next action/.test(f[0])));
+  $("dayGrid").innerHTML=
+    card("Overdue","Next action date has passed.",overdue,row)+
+    card("Due today","Next actions dated today.",dueToday,row)+
+    card("Response times at risk","Referrals not contacted in 1 working day, visits not done in 3, quotes not sent within 2 of the visit.",sla,row)+
+    card("Quotes out","Quotes sent and waiting for an answer.",quotes,row)+
+    card("Going cold","No activity in 14 days, no next action set, or nearing the 90-day ownership lapse.",stale,row)+
+    scoreCard(who||meName,currentMonth());
+  const n=new Set([...overdue,...dueToday,...sla].map(l=>l.id)).size;$("c-day").textContent=n;
+}
+/* ---------- LEADS ---------- */
+function renderLeads(){
+  const q=$("q").value.toLowerCase(),co=$("fCo").value,rp=$("fRep").value,st=$("fStatus").value,fl=$("fFlag").checked;
+  const rows=leads.filter(l=>(!co||l.company_sold_for===co)&&(!rp||l.rep===rp)&&(!st||l.status===st)&&(!fl||leadFlags(l).some(f=>f[1]==="b"))&&(!q||[l.client,l.contact_person,l.area,l.notes,l.next_action,l.email,l.phone].join(" ").toLowerCase().includes(q)));
+  const t=todayStr();
+  $("leadRows").innerHTML=rows.map(l=>{const fl=leadFlags(l).filter(f=>f[1]==="b");return `<tr data-id="${l.id}"><td style="white-space:nowrap">${fmtD(l.date)}</td><td><b>${esc(l.client)}</b>${l.contact_person?`<div class="muted">${esc(l.contact_person)}</div>`:""}${fl.map(f=>`<div><span class="flag">${esc(f[0])}</span></div>`).join("")}</td><td>${esc(l.company_sold_for||"")}</td><td>${esc(l.rep||"")}</td><td class="hide-sm">${esc(l.lead_source||"")}${l.introduced_by?`<div class="muted">via ${esc(l.introduced_by)}</div>`:""}</td><td class="hide-sm">${esc(l.outcome||"")}</td><td>${esc(l.next_action||"")}${l.next_action_date?`<div class="${l.next_action_date<t&&(l.status==="Open"||l.status==="On hold")?"late":"muted"}">${fmtD(l.next_action_date)}</div>`:""}</td><td>${pill(l.status)}</td><td class="num">${money(l.quote_value)}</td></tr>`}).join("")||`<tr><td colspan="9" class="empty">No leads yet. Use “Log a lead or call”.</td></tr>`;
+  $("c-leads").textContent=leads.filter(l=>l.status==="Open").length;
+}
+/* ---------- TARGETS ---------- */
+function renderTargets(){
+  const lists=[...new Set(targets.map(t=>t.list_name))].sort();
+  const sel=$("tList");if(sel.options.length!==lists.length){const cur=sel.value;sel.innerHTML=lists.map(x=>`<option>${esc(x)}</option>`).join("");if(cur&&lists.includes(cur))sel.value=cur}
+  const ln=sel.value,pr=$("tPri").value,st=$("tStatus").value,q=$("tq").value.toLowerCase(),mine=$("tMine").checked;
+  const rows=targets.filter(t=>t.list_name===ln&&(!pr||t.priority===pr)&&(!st||t.status===st)&&(!mine||[t.suggested_rep,t.relationship_owner,t.claimed_by].join(" ").includes(meName))&&(!q||[t.client,t.area,t.sector,t.relationship_owner,t.suggested_rep,t.why_fits,t.notes].join(" ").toLowerCase().includes(q))).sort((a,b)=>(a.rank??1e9)-(b.rank??1e9));
+  $("tInfo").textContent=targets.length?`${rows.length} of ${targets.filter(t=>t.list_name===ln).length} on this list. “Start lead” logs it on the tracker and marks the target as yours.`:"The target lists haven't been loaded yet. A manager can load them under Sales manager → Manager settings.";
+  const shown=rows.slice(0,400);
+  $("tRows").innerHTML=shown.map(t=>`<tr data-tid="${t.id}"><td class="num">${t.rank??""}</td><td><b>${esc(t.client)}</b>${t.area?`<div class="muted">${esc(t.area)}</div>`:""}${isInsurer(t.client)?`<div><span class="flag">Insurer</span></div>`:""}</td><td>${esc(t.priority||"")}</td><td class="hide-sm">${esc(t.sector||"")}</td><td class="hide-sm" style="max-width:280px">${esc(t.why_fits||t.notes||"")}</td><td class="num hide-sm">${money(t.group_spend)}</td><td>${esc(t.relationship_owner||"")}${t.suggested_rep&&t.suggested_rep!==t.relationship_owner?`<div class="muted">rep: ${esc(t.suggested_rep)}</div>`:""}${t.claimed_by?`<div class="muted">taken by ${esc(t.claimed_by)}</div>`:""}</td><td class="hide-sm" style="max-width:220px;overflow-wrap:anywhere">${esc([t.contact,t.phone,t.email].filter(Boolean).join(" · "))}</td><td><select class="tst" data-tid="${t.id}">${["Not started","In progress","Converted to lead","Do not pursue"].map(o=>`<option ${o===t.status?"selected":""}>${o}</option>`).join("")}</select></td><td>${t.lead_id?`<button class="small" data-open="${t.lead_id}" type="button">Open lead</button>`:`<button class="small primary" data-start="${t.id}" type="button">Start lead</button>`}</td></tr>`).join("")+(rows.length>400?`<tr><td colspan="10" class="empty">Showing the first 400. Narrow it down with the filters.</td></tr>`:"");
+}
+/* ---------- SCOREBOARD ---------- */
+const currentMonth=()=>todayStr().slice(0,7);
+function stats(name,month){
+  const m=team.find(t=>t.name===name)||{};
+  const inM=d=>d&&d.slice(0,7)===month;
+  const mine=leads.filter(l=>l.rep===name);
+  const visits=mine.filter(l=>(["Meeting","Site assessment"].includes(l.call_type)&&inM(l.date))||(inM(l.visit_date)&&!["Meeting","Site assessment"].includes(l.call_type))).length;
+  const cross=mine.filter(l=>inM(l.date)&&m.home_company&&l.company_sold_for&&l.company_sold_for!==m.home_company&&!(m.home_company==="Reline24"&&l.company_sold_for==="Leakfind")).length
+    + leads.filter(l=>l.introduced_by===name&&l.rep!==name&&inM(l.date)).length;
+  const q=Math.floor((+month.slice(5)-1)/3),y=month.slice(0,4);
+  const inQ=d=>d&&d.slice(0,4)===y&&Math.floor((+d.slice(5,7)-1)/3)===q;
+  const won=leads.filter(l=>l.status==="Won"&&(l.closed_by||l.rep)===name&&inQ(l.client_start_date||l.updated_at?.slice(0,10))).length;
+  const logged=mine.filter(l=>inM(l.date));const onTime=logged.filter(l=>((new Date(l.created_at).getTime()+2*3600e3)-new Date(l.date+"T23:59:59Z").getTime())<=864e5).length;
+  const refs=mine.filter(l=>inM(l.date)&&["Introduction from sister company","Referral partner"].includes(l.lead_source));
+  const refOk=refs.filter(l=>l.first_contact_date&&workdays(l.date,l.first_contact_date)<=1).length;
+  return {m,visits,cross,won,logged:logged.length,onTime,refs:refs.length,refOk,open:mine.filter(l=>l.status==="Open").length,pipeline:mine.filter(l=>l.status==="Quote sent").reduce((a,l)=>a+Number(l.quote_value||0),0)};
+}
+function scoreCard(name,month){
+  const s=stats(name,month);if(!s.m.name||s.m.role==="manager")return "";
+  const b=(v,t)=>t?`<div class="bar"><i style="width:${Math.min(100,v/t*100)}%"></i></div>`:"";
+  const pct=(a,b)=>b?Math.round(a/b*100)+"%":"–";
+  return `<div class="panel"><h2>${esc(name)} · ${esc(s.m.home_company||"")}</h2><p class="sub">${esc(month)} · targets from the Playbook (first 90 days)</p><div class="kpis" style="margin-top:10px">
+  <div class="kpi"><div class="v">${s.visits}${s.m.target_visits?`<span class="muted" style="font-size:13px"> / ${s.m.target_visits}</span>`:""}</div><div class="l">Visits this month</div>${b(s.visits,s.m.target_visits)}</div>
+  <div class="kpi"><div class="v">${s.cross}${s.m.target_cross_leads?`<span class="muted" style="font-size:13px"> / ${s.m.target_cross_leads}</span>`:""}</div><div class="l">Cross-company leads</div>${b(s.cross,s.m.target_cross_leads)}</div>
+  <div class="kpi"><div class="v">${s.won}${s.m.target_won_quarter?`<span class="muted" style="font-size:13px"> / ${s.m.target_won_quarter}</span>`:""}</div><div class="l">Won this quarter</div>${b(s.won,s.m.target_won_quarter)}</div>
+  <div class="kpi"><div class="v">${pct(s.onTime,s.logged)}</div><div class="l">Logged within 24h (target 100%)</div></div>
+  <div class="kpi"><div class="v">${pct(s.refOk,s.refs)}</div><div class="l">Referrals contacted in 1 day</div></div>
+  <div class="kpi"><div class="v">${s.open}</div><div class="l">Open leads · R${money(s.pipeline)} quoted</div></div></div></div>`;
+}
+function renderScore(){
+  const months=[...new Set([currentMonth(),...leads.map(l=>l.date?.slice(0,7)).filter(Boolean)])].sort().reverse();
+  const sel=$("sMonth");const cur=sel.value||currentMonth();sel.innerHTML=months.map(m=>`<option ${m===cur?"selected":""}>${m}</option>`).join("");
+  $("scoreGrid").innerHTML=team.filter(t=>t.role==="rep"&&t.active).map(t=>scoreCard(t.name,sel.value)).join("");
+  const won=leads.filter(l=>l.status==="Won");
+  $("commRows").innerHTML=won.map(l=>`<tr data-id="${l.id}"><td>${esc(l.client)}</td><td>${esc(l.company_sold_for||"")}</td><td>${esc(l.closed_by||l.rep||"")}</td><td class="num">${money(l.quote_value)}</td><td class="num">${money(l.closer_commission)}</td><td>${esc(l.introduced_by||"")}</td><td class="num">${money(l.introducer_commission)}</td><td>${fmtD(l.client_start_date)}</td><td>${fmtD(l.commission_valid_until)}</td></tr>`).join("")||`<tr><td colspan="9" class="empty">No won leads yet.</td></tr>`;
+}
+/* ---------- AI MANAGER ---------- */
+function renderBriefs(){
+  const list=briefs.slice(0,30);
+  $("briefs").innerHTML=list.length?list.map((b,i)=>`<details class="brief" ${i===0?"open":""}><summary>${esc(b.subject)} <span class="muted">· ${new Date(b.created_at).toLocaleString("en-ZA",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})} · to ${esc(b.recipient==="team"?"the team":(team.find(t=>t.email===b.recipient)||{}).name||b.recipient)}${b.sent_at?" · emailed":""}</span></summary><div class="body">${b.html}</div></details>`).join(""):`<p class="empty">No briefings yet. The first one arrives on the next weekday morning.</p>`;
+  if(isMgr){$("teamList").innerHTML=team.map(t=>`<div class="item" style="cursor:default"><div class="t">${esc(t.name)} <span class="muted">· ${esc(t.role)}${t.home_company?" · "+esc(t.home_company):""}</span></div><div class="muted">${esc(t.email)}${t.role==="rep"?` · targets: ${t.target_visits} visits, ${t.target_cross_leads} cross leads/month, ${t.target_won_quarter} won/quarter`:""}</div></div>`).join("")}
+}
+function renderRules(){
+  $("pCount").textContent=`(${partners.length})`;$("iCount").textContent=`(${insurers.length})`;
+  $("pRows").innerHTML=partners.map(p=>`<tr style="cursor:default"><td><b>${esc(p.partner)}</b></td><td>${esc(p.status||"")}</td><td>${esc(p.tier||"")}</td><td>${esc([p.contact,p.phone,p.email].filter(Boolean).join(" · "))}</td><td>${esc(p.relationship_owner||"")}</td><td class="num">${money(p.group_sales)}</td><td style="max-width:320px">${esc(p.notes||"")}</td></tr>`).join("")||`<tr><td colspan="7" class="empty">Not loaded yet.</td></tr>`;
+  $("iRows").innerHTML=insurers.map(i=>`<tr style="cursor:default"><td>${esc(i.client)}</td><td class="muted">${esc(i.also_known_as||"")}</td></tr>`).join("")||`<tr><td colspan="2" class="empty">Not loaded yet.</td></tr>`;
+}
+function render(){
+  try{
+    if(tab==="day")renderDay(); if(tab==="leads")renderLeads(); if(tab==="targets")renderTargets(); if(tab==="score")renderScore(); if(tab==="ai")renderBriefs(); if(tab==="rules")renderRules();
+    $("c-leads").textContent=leads.filter(l=>l.status==="Open").length;
+    if(tab!=="day"){const t=todayStr();$("c-day").textContent=leads.filter(l=>(!meName||l.rep===meName||isMgr)&&(l.status==="Open"||l.status==="On hold")&&l.next_action_date&&l.next_action_date<=t).length}
+    $("sync").innerHTML=`<b>${leads.length}</b> logged · <b>${leads.filter(l=>l.status==="Open").length}</b> open · <b>${leads.filter(l=>l.status==="Quote sent").length}</b> quotes out · updates live for everyone`;
+  }catch(e){console.error(e)}
+}
+/* ---------- DIALOG ---------- */
+const F=()=>$("leadForm").elements;
+function openLead(l,prefill){
+  editing=l?l.id:null;
+  document.querySelectorAll("[data-opts]").forEach(s=>fillSelect(s,s.dataset.opts));
+  const pf=Object.fromEntries(Object.entries(prefill||{}).filter(([k,v])=>v!=null&&v!==""));
+  const d=l||Object.assign({date:todayStr(),rep:isMgr&&!reps().includes(meName)?"":meName,status:"Open",company_sold_for:(team.find(t=>t.name===meName)||{}).home_company||"DC24"},pf);
+  for(const el of F()){if(!el.name)continue;const v=d[el.name];if(el.type==="checkbox")el.checked=!!v;else el.value=v??""}
+  $("dlgTitle").textContent=l?l.client:"Log a lead or call";
+  $("actBox").hidden=!l;$("dlgMsg").textContent="";
+  insCheck();commLine(d);
+  if(l)renderActs();
+  $("dlg").showModal();
+}
+function insCheck(){$("insWarn").hidden=!isInsurer(F().client.value)}
+function commLine(d){
+  const v=Number(String(F().quote_value.value).replace(/[^\d.]/g,""))||0;
+  $("commLine").textContent=F().status.value==="Won"&&v?`Commission: ${F().closed_by.value||F().rep.value||"closer"} R${money(v*0.04)} (4%)${F().introduced_by.value&&F().introduced_by.value!==F().closed_by.value?`, ${F().introduced_by.value} R${money(v*0.01)} (1%)`:""}. Paid after the client pays.`:"";
+}
+function renderActs(){
+  const list=acts.filter(a=>a.lead_id===editing);
+  $("actList").innerHTML=list.map(a=>`<div class="note"><div class="by">${esc((team.find(t=>t.email===a.by_email)||{}).name||a.by_email||"")} · ${new Date(a.at).toLocaleString("en-ZA",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</div>${esc(a.text)}</div>`).join("")||`<p class="empty">No updates yet.</p>`;
+}
+$("leadForm").addEventListener("input",e=>{if(e.target.name==="client")insCheck();commLine()});
+$("dlgClose").addEventListener("click",()=>$("dlg").close());
+$("leadForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const row={};for(const el of F()){if(!el.name)continue;row[el.name]=el.type==="checkbox"?el.checked:(el.value.trim()===""?null:el.value.trim())}
+  if(row.quote_value!=null){row.quote_value=Number(String(row.quote_value).replace(/[^\d.]/g,""))||null}
+  if(row.status==="Won"&&!row.closed_by)row.closed_by=row.rep;
+  if(!row.first_contact_date&&row.call_type&&row.outcome&&row.outcome!=="No answer")row.first_contact_date=row.date;
+  if(!row.visit_date&&["Meeting","Site assessment"].includes(row.call_type))row.visit_date=row.date;
+  $("dlgMsg").textContent="Saving…";
+  let res;
+  if(editing){res=await sb.from("sf_leads").update(row).eq("id",editing).select().single()}
+  else{res=await sb.from("sf_leads").insert(row).select().single()}
+  if(res.error){$("dlgMsg").textContent="Couldn't save: "+res.error.message;return}
+  if(pendingTarget&&res.data){await sb.from("sf_targets").update({status:"Converted to lead",lead_id:res.data.id,claimed_by:meName,claimed_at:new Date().toISOString()}).eq("id",pendingTarget);pendingTarget=null}
+  $("dlg").close();loadLeads();loadTargets();
+});
+$("actAdd").addEventListener("click",async()=>{
+  const t=$("actText").value.trim();if(!t||!editing)return;
+  const {error}=await sb.from("sf_activity").insert({lead_id:editing,text:t});
+  if(error){$("dlgMsg").textContent="Couldn't add: "+error.message;return}
+  $("actText").value="";await loadActs();renderActs();
+});
+let pendingTarget=null;
+document.addEventListener("click",e=>{
+  const st=e.target.closest("[data-start]");
+  if(st){const t=targets.find(x=>x.id===st.dataset.start);pendingTarget=t.id;
+    openLead(null,{client:t.client,contact_person:t.contact&&!/@|\d{3}/.test(t.contact)?t.contact:null,phone:t.phone,email:t.email,area:t.area,site_address:t.address,lead_source:"Target list",company_sold_for:(t.best_companies||"").split(",")[0].trim().replace("Leakfind/Reline24","Leakfind")||undefined,notes:[t.list_name,t.why_fits,t.relationship_owner?"Relationship owner: "+t.relationship_owner:null,t.notes].filter(Boolean).join("\n")});return}
+  const op=e.target.closest("[data-open]");if(op){const l=leads.find(x=>x.id===op.dataset.open);if(l)openLead(l);return}
+  if(e.target.closest("select,button,input,a"))return;
+  const r=e.target.closest("[data-id]");if(r){const l=leads.find(x=>x.id===r.dataset.id);if(l)openLead(l)}
+});
+document.addEventListener("change",async e=>{
+  if(e.target.classList.contains("tst")){const {error}=await sb.from("sf_targets").update({status:e.target.value,claimed_by:e.target.value==="Not started"?null:meName,claimed_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq("id",e.target.dataset.tid);if(error)alertMsg("Couldn't update the target.");}
+});
+const alertMsg=m=>{$("sync").textContent=m};
+$("newLead").addEventListener("click",()=>{pendingTarget=null;openLead(null)});
+document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>{tab=b.dataset.tab;document.querySelectorAll(".tabs button").forEach(x=>x.setAttribute("aria-selected",x===b));document.querySelectorAll("[data-pane]").forEach(p=>p.hidden=p.dataset.pane!==tab);try{localStorage.setItem("sf-tab",tab)}catch(_){}render()}));
+["q","fCo","fRep","fStatus","fFlag","tList","tPri","tStatus","tq","tMine","sMonth","dayRep"].forEach(id=>$(id).addEventListener("input",render));
+$("csvBtn").addEventListener("click",()=>{
+  const cols=["date","company_sold_for","rep","lead_source","introduced_by","area","industry","client","contact_person","phone","email","site_address","heat","call_type","outcome","next_action","next_action_date","first_contact_date","visit_date","site_assessment_done","databox_loaded","details_verified","databox_report_no","qb_quote_no","quote_value","checked_by","checked_date","quotes_group_approved_date","sent_to_client_date","status","closed_by","client_start_date","commission_valid_until","closer_commission","introducer_commission","notes"];
+  const csv=[cols.join(","),...leads.map(l=>cols.map(c=>{const v=l[c]??"";return /[",\n]/.test(String(v))?`"${String(v).replace(/"/g,'""')}"`:v}).join(","))].join("\n");
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["﻿"+csv],{type:"text/csv"}));a.download="sales-force-"+todayStr()+".csv";document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),500);
+});
+/* ---------- MANAGER ---------- */
+async function loadMail(){
+  const {data}=await sb.rpc("sf_mail_status");if(!data)return;
+  $("mHost").value=data.smtp_host||"";$("mPort").value=data.smtp_port||"465";$("mUser").value=data.smtp_user||"";
+  $("mailStatus").innerHTML=data.has_pass?`Emails go out from <b>${esc(data.from_email)}</b>.`:`<span class="late">Not sending yet:</span> enter the password for <b>${esc(data.smtp_user)}</b> so the sales manager can send emails. Briefings still show on this page.`;
+}
+$("mSave").addEventListener("click",async()=>{
+  $("mMsg").textContent="Saving…";
+  const {error}=await sb.rpc("sf_set_mail",{p_host:$("mHost").value.trim(),p_port:$("mPort").value.trim(),p_user:$("mUser").value.trim(),p_pass:$("mPass").value});
+  $("mMsg").textContent=error?"Couldn't save: "+error.message:"Saved";$("mPass").value="";loadMail();
+});
+$("importFile").addEventListener("change",async e=>{
+  const f=e.target.files[0];if(!f)return;const m=$("importMsg");
+  try{
+    const data=JSON.parse(await f.text());
+    const ins=async(table,rows,label)=>{
+      const {count}=await sb.from(table).select("id",{count:"exact",head:true});
+      if(count>0){m.textContent+=` ${label}: already loaded (${count}), skipped.`;return}
+      for(let i=0;i<rows.length;i+=400){m.textContent=`Loading ${label}… ${i}/${rows.length}`;const {error}=await sb.from(table).insert(rows.slice(i,i+400));if(error)throw new Error(label+": "+error.message)}
+      m.textContent=`${label}: ${rows.length} loaded.`;
+    };
+    m.textContent="";
+    await ins("sf_targets",data.targets||[],"Target lists");const a=m.textContent;
+    await ins("sf_partners",data.partners||[],"Referral partners");const b=m.textContent;
+    await ins("sf_insurers",data.insurers||[],"Insurers");
+    m.textContent=[a,b,m.textContent].join(" ");
+    await Promise.all([loadTargets(),loadRef()]);
+  }catch(err){m.textContent="Import stopped: "+err.message}
+});
+/* ---------- LOADERS ---------- */
+async function loadAll(table,order){let out=[],from=0;for(;;){const {data,error}=await sb.from(table).select("*").order(order||"id").range(from,from+999);if(error){console.error(error);break}out=out.concat(data);if(data.length<1000)break;from+=1000}return out}
+async function loadLeads(){const {data,error}=await sb.from("sf_leads").select("*").order("date",{ascending:false}).order("created_at",{ascending:false});if(!error){leads=data;render()}}
+async function loadActs(){acts=await loadAll("sf_activity","at");acts.reverse()}
+async function loadTargets(){targets=await loadAll("sf_targets","rank");$("clientList").innerHTML=[...new Set(targets.map(t=>t.client))].map(c=>`<option value="${esc(c)}">`).join("");render()}
+async function loadRef(){partners=await loadAll("sf_partners","partner");insurers=await loadAll("sf_insurers","client");insSet=new Set(insurers.flatMap(i=>[i.client,...String(i.also_known_as||"").split(";")]).map(norm).filter(x=>x.length>3));partners.sort((a,b)=>(b.group_sales||0)-(a.group_sales||0));render()}
+async function loadBriefs(){const {data}=await sb.from("sf_briefings").select("*").order("created_at",{ascending:false}).limit(60);briefs=data||[];render()}
+async function startApp(session){
+  me=(session.user.email||"").toLowerCase();
+  const {data}=await sb.from("sf_members").select("*").order("role",{ascending:false}).order("name");
+  team=data||[];const m=team.find(t=>t.email.toLowerCase()===me);
+  if(!m){$("login").hidden=false;$("app").hidden=true;$("loginMsg").textContent=me+" isn't on the Sales Force team yet. Ask Mariette or Cecil to add you.";$("loginMsg").className="msg err";return}
+  meName=m.name;isMgr=m.role==="manager";
+  $("login").hidden=true;$("app").hidden=false;$("whoami").textContent="Signed in as "+meName+(isMgr?" (manager)":"");
+  $("mgrPanel").hidden=!isMgr;
+  $("dayRep").innerHTML=(isMgr?`<option value="">Everyone</option>`:"")+team.filter(t=>t.role==="rep").map(t=>`<option ${t.name===meName?"selected":""}>${esc(t.name)}</option>`).join("");
+  $("fCo").innerHTML=`<option value="">All companies</option>`+OPTS.companies.map(c=>`<option>${c}</option>`).join("");
+  $("fRep").innerHTML=`<option value="">All reps</option>`+reps().map(c=>`<option>${esc(c)}</option>`).join("");
+  $("fStatus").innerHTML=`<option value="">All statuses</option>`+OPTS.statuses.map(c=>`<option>${c}</option>`).join("");
+  try{const t=localStorage.getItem("sf-tab");if(t)document.querySelector(`.tabs [data-tab="${t}"]`)?.click()}catch(_){}
+  await Promise.all([loadLeads(),loadActs(),loadRef(),loadBriefs(),isMgr?loadMail():null]);loadTargets();
+  const tm={};const deb=(k,fn)=>{clearTimeout(tm[k]);tm[k]=setTimeout(fn,400)};
+  sb.channel("sales-force")
+    .on("postgres_changes",{event:"*",schema:"public",table:"sf_leads"},()=>deb("l",loadLeads))
+    .on("postgres_changes",{event:"*",schema:"public",table:"sf_activity"},()=>deb("a",async()=>{await loadActs();if($("dlg").open&&editing)renderActs()}))
+    .on("postgres_changes",{event:"*",schema:"public",table:"sf_targets"},()=>deb("t",loadTargets))
+    .on("postgres_changes",{event:"*",schema:"public",table:"sf_briefings"},()=>deb("b",loadBriefs))
+    .subscribe();
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden){loadLeads();loadBriefs()}});
+  setInterval(()=>{if(!document.hidden)loadLeads()},120000);
+}
+$("login").addEventListener("submit",async e=>{
+  e.preventDefault();$("loginMsg").className="msg";$("loginMsg").textContent="Signing in…";
+  const {error}=await sb.auth.signInWithPassword({email:$("loginEmail").value.trim(),password:$("loginPw").value});
+  if(error){$("loginMsg").textContent="That email and password don't match. Check them and try again.";$("loginMsg").className="msg err"}else $("loginMsg").textContent="";
+});
+$("pwBtn").addEventListener("click",()=>{$("pwForm").hidden=!$("pwForm").hidden;$("newPw").focus()});
+$("pwForm").addEventListener("submit",async e=>{e.preventDefault();const pw=$("newPw").value;if(pw.length<8){$("pwMsg").textContent="Use at least 8 characters.";return}
+  const {error}=await sb.auth.updateUser({password:pw});$("pwMsg").textContent=error?"Couldn't change it: "+error.message:"Password changed";if(!error){$("newPw").value="";setTimeout(()=>{$("pwForm").hidden=true;$("pwMsg").textContent=""},2000)}});
+$("signOut").addEventListener("click",async()=>{await sb.auth.signOut();location.reload()});
+(async()=>{
+  if(!window.supabase){$("login").hidden=false;$("loginMsg").textContent="Couldn't load. Check your internet connection and reload.";return}
+  sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+  const {data:{session}}=await sb.auth.getSession();
+  let started=false;
+  if(session){started=true;startApp(session)}else{$("login").hidden=false}
+  sb.auth.onAuthStateChange((ev,s)=>{if(s&&!started){started=true;startApp(s)}});
+})();
+})();
+</script>
+</body>
+</html>
