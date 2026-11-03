@@ -58,7 +58,7 @@ tbody tr{cursor:pointer}
 tbody tr:hover{background:var(--soft)}
 td.num,th.num{text-align:right;font-family:var(--f-mono);white-space:nowrap}
 .pill{display:inline-block;font:600 11px var(--f-body);border-radius:10px;padding:1px 8px;white-space:nowrap}
-.s-Open{background:var(--accent-soft);color:var(--accent)} .s-Quote{background:var(--warn-bg);color:var(--warn)}
+.s-New,.s-Accepted,.s-Contacted,.s-Meeting{background:var(--accent-soft);color:var(--accent)} .s-Quoted{background:var(--warn-bg);color:var(--warn)}
 .s-Won{background:var(--good-bg);color:var(--good)} .s-Lost{background:var(--bad-bg);color:var(--bad)} .s-On{background:var(--grey-bg);color:var(--muted)}
 .late{color:var(--bad);font-weight:600}
 .flag{display:inline-block;font:600 11px var(--f-body);color:var(--bad);background:var(--bad-bg);border-radius:4px;padding:0 6px;margin:1px 4px 1px 0}
@@ -180,7 +180,7 @@ legend{font:700 12px var(--f-body);text-transform:uppercase;letter-spacing:.05em
   <!-- AI MANAGER -->
   <section data-pane="ai" hidden>
     <div class="panel"><h2>Your AI sales manager</h2>
-      <p class="sub">Every weekday morning the sales manager reads this log, checks it against the Playbook and emails each rep their list for the day. Mondays it sends the 08:00 huddle agenda, Fridays the pipeline summary, and on the 1st Tuesday a full review to Cecil and Mariette. Anything 2+ working days overdue is escalated. Briefings also appear here.</p>
+      <p class="sub">Every weekday morning the sales manager reads this log, checks it against the Playbook and emails each rep their list for the day. Mondays it sends the weekly sales meeting agenda, Fridays the pipeline summary, and on the 1st Tuesday a full review to Cecil and Mariette. Anything 2+ working days overdue is escalated. Briefings also appear here.</p>
     </div>
     <div id="briefs"></div>
     <div class="panel" id="mgrPanel" hidden style="margin-top:12px">
@@ -242,6 +242,9 @@ legend{font:700 12px var(--f-body);text-transform:uppercase;letter-spacing:.05em
         <label>Rep logging it<select name="rep" data-opts="reps"></select></label>
         <label>Lead source<select name="lead_source" data-opts="sources"></select></label>
         <label>Introduced by (rep)<select name="introduced_by" data-opts="repsBlank"></select></label>
+        <label>Client agreed to the introduction<select name="intro_permission" data-opts="yesno"></select></label>
+        <label>Accepted by (receiving rep)<select name="accepted_by" data-opts="repsBlank"></select></label>
+        <label>Accepted on<input type="date" name="accepted_date"></label>
         <label>How hot<select name="heat" data-opts="heat"></select></label>
         <label>Industry<select name="industry" data-opts="industries"></select></label>
         <label>Area / suburb<input name="area"></label>
@@ -277,6 +280,7 @@ legend{font:700 12px var(--f-body);text-transform:uppercase;letter-spacing:.05em
         <label>Status<select name="status" data-opts="statuses"></select></label>
         <label>Closed by (rep)<select name="closed_by" data-opts="repsBlank"></select></label>
         <label>Client start date<input type="date" name="client_start_date"></label>
+        <label class="wide" id="lostWrap">Reason lost<input name="lost_reason" placeholder="Why was it lost? (price, timing, went elsewhere, no need…)"></label>
         <label class="wide">Notes<textarea name="notes"></textarea></label>
       </div><p class="msg" id="commLine"></p></fieldset>
       <fieldset id="actBox" hidden><legend>Activity</legend>
@@ -305,26 +309,30 @@ const OPTS={
   industries:["","Butcher","Restaurant","Hotel","Factory","Food processing","School","Body corporate","Retail","Office","Municipal","Medical","Property group","Other"],
   callTypes:["","Cold call","Follow-up call","Meeting","Site assessment","Email","WhatsApp"],
   outcomes:["","No answer","Call back","Not interested","Interested - send info","Meeting booked","Site assessment booked","Quote requested"],
-  statuses:["Open","Quote sent","Won","Lost","On hold"],
-  heat:["","Hot","Warm","Cold"]
+  statuses:["New referral","Accepted","Contacted","Meeting or assessment","Quoted","Won","Lost","On hold"],
+  heat:["","Hot","Warm","Cold"],
+  yesno:["","Yes","No"]
 };
+const ACTIVE=["New referral","Accepted","Contacted","Meeting or assessment"];
+const isOpen=l=>ACTIVE.includes(l.status);
+const OPT_LABEL={"Reline24":"Reline24 / PipeRenu"};
 let sb,me="",meName="",isMgr=false,team=[],leads=[],flags={},acts=[],targets=[],partners=[],insurers=[],briefs=[],tab="day",editing=null;
 const reps=()=>team.filter(t=>t.active).map(t=>t.name);
 function fillSelect(sel,key){
   const list=key==="reps"?reps():key==="repsBlank"?["",...reps()]:OPTS[key];
-  const cur=sel.value;sel.innerHTML=list.map(v=>`<option value="${esc(v)}">${esc(v||"—")}</option>`).join("");if(cur)sel.value=cur;
+  const cur=sel.value;sel.innerHTML=list.map(v=>`<option value="${esc(v)}">${esc(OPT_LABEL[v]||v||"—")}</option>`).join("");if(cur)sel.value=cur;
 }
 const workdays=(a,b)=>{if(!a||!b)return 0;let d=new Date(a+"T00:00:00"),e=new Date(b+"T00:00:00"),n=0;while(d<e){d.setDate(d.getDate()+1);const w=d.getDay();if(w&&w<6)n++}return n};
 function leadFlags(l){
-  const t=todayStr(),f=[],open=l.status==="Open"||l.status==="On hold";
+  const t=todayStr(),f=[],open=isOpen(l)||l.status==="On hold";
   if(open&&l.next_action_date&&l.next_action_date<t)f.push(["Next action overdue","b"]);
-  if(l.status==="Open"&&["Introduction from sister company","Referral partner"].includes(l.lead_source)&&!l.first_contact_date&&workdays(l.date,t)>1)f.push(["Referral not contacted in 1 day","b"]);
-  if(l.status==="Open"&&l.first_contact_date&&!l.visit_date&&!l.site_assessment_done&&workdays(l.first_contact_date,t)>3)f.push(["Visit overdue (3 days)","b"]);
-  if(l.status==="Open"&&l.visit_date&&!l.sent_to_client_date&&workdays(l.visit_date,t)>2)f.push(["Quote overdue (2 days)","b"]);
+  if(isOpen(l)&&["Introduction from sister company","Referral partner"].includes(l.lead_source)&&!l.first_contact_date&&workdays(l.date,t)>1)f.push(["Referral not contacted in 1 day","b"]);
+  if(isOpen(l)&&l.first_contact_date&&!l.visit_date&&!l.site_assessment_done&&workdays(l.first_contact_date,t)>3)f.push(["Visit overdue (3 days)","b"]);
+  if(isOpen(l)&&l.visit_date&&!l.sent_to_client_date&&workdays(l.visit_date,t)>2)f.push(["Quote overdue (2 days)","b"]);
   if(open&&l.last_activity_at&&(Date.now()-new Date(l.last_activity_at))>75*864e5)f.push(["Ownership lapses at 90 days","w"]);
   else if(open&&l.last_activity_at&&(Date.now()-new Date(l.last_activity_at))>14*864e5)f.push(["No activity 14 days","w"]);
-  if(l.status==="Quote sent"&&l.sent_to_client_date&&workdays(l.sent_to_client_date,t)>5&&(Date.now()-new Date(l.last_activity_at))>7*864e5)f.push(["Follow up the quote","w"]);
-  if(l.status==="Open"&&!l.next_action_date)f.push(["No next action set","w"]);
+  if(l.status==="Quoted"&&l.sent_to_client_date&&workdays(l.sent_to_client_date,t)>5&&(Date.now()-new Date(l.last_activity_at))>7*864e5)f.push(["Follow up the quote","w"]);
+  if(isOpen(l)&&!l.next_action_date)f.push(["No next action set","w"]);
   if(isInsurer(l.client))f.push(["Insurer client: do not cross-sell","b"]);
   return f;
 }
@@ -336,14 +344,14 @@ const pill=s=>`<span class="pill s-${esc((s||"").split(" ")[0])}">${esc(s||"")}<
 /* ---------- MY DAY ---------- */
 function renderDay(){
   const who=$("dayRep").value;const t=todayStr();
-  const mine=leads.filter(l=>!who||l.rep===who||l.closed_by===who||l.introduced_by===who&&l.status==="Open");
+  const mine=leads.filter(l=>!who||l.rep===who||l.closed_by===who||l.introduced_by===who&&isOpen(l));
   const card=(title,desc,list,fmt)=>`<div class="panel"><h2>${title} <span class="muted">(${list.length})</span></h2><p class="sub">${desc}</p><div class="list">${list.length?list.slice(0,40).map(fmt).join(""):`<p class="empty">Nothing here.</p>`}</div></div>`;
   const row=l=>`<div class="item" data-id="${l.id}"><div class="t">${esc(l.client)} <span class="muted">· ${esc(l.company_sold_for||"")} · ${esc(l.rep||"")}</span></div><div>${esc(l.next_action||"No next action")}${l.next_action_date?` <span class="${l.next_action_date<t?"late":"muted"}">(${fmtD(l.next_action_date)})</span>`:""}</div><div>${leadFlags(l).map(f=>`<span class="flag ${f[1]==="w"?"w":""}">${esc(f[0])}</span>`).join("")}</div></div>`;
-  const open=mine.filter(l=>l.status==="Open"||l.status==="On hold");
+  const open=mine.filter(l=>isOpen(l)||l.status==="On hold");
   const overdue=open.filter(l=>l.next_action_date&&l.next_action_date<t);
   const dueToday=open.filter(l=>l.next_action_date===t);
   const sla=open.filter(l=>leadFlags(l).some(f=>/Referral|Visit overdue|Quote overdue/.test(f[0])));
-  const quotes=mine.filter(l=>l.status==="Quote sent");
+  const quotes=mine.filter(l=>l.status==="Quoted");
   const stale=open.filter(l=>leadFlags(l).some(f=>/14 days|90 days|No next action/.test(f[0])));
   $("dayGrid").innerHTML=
     card("Overdue","Next action date has passed.",overdue,row)+
@@ -359,8 +367,8 @@ function renderLeads(){
   const q=$("q").value.toLowerCase(),co=$("fCo").value,rp=$("fRep").value,st=$("fStatus").value,fl=$("fFlag").checked;
   const rows=leads.filter(l=>(!co||l.company_sold_for===co)&&(!rp||l.rep===rp)&&(!st||l.status===st)&&(!fl||leadFlags(l).some(f=>f[1]==="b"))&&(!q||[l.client,l.contact_person,l.area,l.notes,l.next_action,l.email,l.phone].join(" ").toLowerCase().includes(q)));
   const t=todayStr();
-  $("leadRows").innerHTML=rows.map(l=>{const fl=leadFlags(l).filter(f=>f[1]==="b");return `<tr data-id="${l.id}"><td style="white-space:nowrap">${fmtD(l.date)}</td><td><b>${esc(l.client)}</b>${l.contact_person?`<div class="muted">${esc(l.contact_person)}</div>`:""}${fl.map(f=>`<div><span class="flag">${esc(f[0])}</span></div>`).join("")}</td><td>${esc(l.company_sold_for||"")}</td><td>${esc(l.rep||"")}</td><td class="hide-sm">${esc(l.lead_source||"")}${l.introduced_by?`<div class="muted">via ${esc(l.introduced_by)}</div>`:""}</td><td class="hide-sm">${esc(l.outcome||"")}</td><td>${esc(l.next_action||"")}${l.next_action_date?`<div class="${l.next_action_date<t&&(l.status==="Open"||l.status==="On hold")?"late":"muted"}">${fmtD(l.next_action_date)}</div>`:""}</td><td>${pill(l.status)}</td><td class="num">${money(l.quote_value)}</td></tr>`}).join("")||`<tr><td colspan="9" class="empty">No leads yet. Use “Log a lead or call”.</td></tr>`;
-  $("c-leads").textContent=leads.filter(l=>l.status==="Open").length;
+  $("leadRows").innerHTML=rows.map(l=>{const fl=leadFlags(l).filter(f=>f[1]==="b");return `<tr data-id="${l.id}"><td style="white-space:nowrap">${fmtD(l.date)}</td><td><b>${esc(l.client)}</b>${l.contact_person?`<div class="muted">${esc(l.contact_person)}</div>`:""}${fl.map(f=>`<div><span class="flag">${esc(f[0])}</span></div>`).join("")}</td><td>${esc(l.company_sold_for||"")}</td><td>${esc(l.rep||"")}</td><td class="hide-sm">${esc(l.lead_source||"")}${l.introduced_by?`<div class="muted">via ${esc(l.introduced_by)}</div>`:""}</td><td class="hide-sm">${esc(l.outcome||"")}</td><td>${esc(l.next_action||"")}${l.next_action_date?`<div class="${l.next_action_date<t&&(isOpen(l)||l.status==="On hold")?"late":"muted"}">${fmtD(l.next_action_date)}</div>`:""}</td><td>${pill(l.status)}</td><td class="num">${money(l.quote_value)}</td></tr>`}).join("")||`<tr><td colspan="9" class="empty">No leads yet. Use “Log a lead or call”.</td></tr>`;
+  $("c-leads").textContent=leads.filter(l=>isOpen(l)).length;
 }
 /* ---------- TARGETS ---------- */
 function renderTargets(){
@@ -387,7 +395,7 @@ function stats(name,month){
   const logged=mine.filter(l=>inM(l.date));const onTime=logged.filter(l=>((new Date(l.created_at).getTime()+2*3600e3)-new Date(l.date+"T23:59:59Z").getTime())<=864e5).length;
   const refs=mine.filter(l=>inM(l.date)&&["Introduction from sister company","Referral partner"].includes(l.lead_source));
   const refOk=refs.filter(l=>l.first_contact_date&&workdays(l.date,l.first_contact_date)<=1).length;
-  return {m,visits,cross,won,logged:logged.length,onTime,refs:refs.length,refOk,open:mine.filter(l=>l.status==="Open").length,pipeline:mine.filter(l=>l.status==="Quote sent").reduce((a,l)=>a+Number(l.quote_value||0),0)};
+  return {m,visits,cross,won,logged:logged.length,onTime,refs:refs.length,refOk,open:mine.filter(l=>isOpen(l)).length,pipeline:mine.filter(l=>l.status==="Quoted").reduce((a,l)=>a+Number(l.quote_value||0),0)};
 }
 function scoreCard(name,month){
   const s=stats(name,month);if(!s.m.name||s.m.role==="manager")return "";
@@ -422,9 +430,9 @@ function renderRules(){
 function render(){
   try{
     if(tab==="day")renderDay(); if(tab==="leads")renderLeads(); if(tab==="targets")renderTargets(); if(tab==="score")renderScore(); if(tab==="ai")renderBriefs(); if(tab==="rules")renderRules();
-    $("c-leads").textContent=leads.filter(l=>l.status==="Open").length;
-    if(tab!=="day"){const t=todayStr();$("c-day").textContent=leads.filter(l=>(!meName||l.rep===meName||isMgr)&&(l.status==="Open"||l.status==="On hold")&&l.next_action_date&&l.next_action_date<=t).length}
-    $("sync").innerHTML=`<b>${leads.length}</b> logged · <b>${leads.filter(l=>l.status==="Open").length}</b> open · <b>${leads.filter(l=>l.status==="Quote sent").length}</b> quotes out · updates live for everyone`;
+    $("c-leads").textContent=leads.filter(l=>isOpen(l)).length;
+    if(tab!=="day"){const t=todayStr();$("c-day").textContent=leads.filter(l=>(!meName||l.rep===meName||isMgr)&&(isOpen(l)||l.status==="On hold")&&l.next_action_date&&l.next_action_date<=t).length}
+    $("sync").innerHTML=`<b>${leads.length}</b> logged · <b>${leads.filter(l=>isOpen(l)).length}</b> open · <b>${leads.filter(l=>l.status==="Quoted").length}</b> quotes out · updates live for everyone`;
   }catch(e){console.error(e)}
 }
 /* ---------- DIALOG ---------- */
@@ -433,11 +441,11 @@ function openLead(l,prefill){
   editing=l?l.id:null;
   document.querySelectorAll("[data-opts]").forEach(s=>fillSelect(s,s.dataset.opts));
   const pf=Object.fromEntries(Object.entries(prefill||{}).filter(([k,v])=>v!=null&&v!==""));
-  const d=l||Object.assign({date:todayStr(),rep:isMgr&&!reps().includes(meName)?"":meName,status:"Open",company_sold_for:(team.find(t=>t.name===meName)||{}).home_company||"DC24"},pf);
+  const d=l||Object.assign({date:todayStr(),rep:isMgr&&!reps().includes(meName)?"":meName,status:"New referral",company_sold_for:(team.find(t=>t.name===meName)||{}).home_company||"DC24"},pf);
   for(const el of F()){if(!el.name)continue;const v=d[el.name];if(el.type==="checkbox")el.checked=!!v;else el.value=v??""}
   $("dlgTitle").textContent=l?l.client:"Log a lead or call";
   $("actBox").hidden=!l;$("dlgMsg").textContent="";
-  insCheck();commLine(d);
+  insCheck();lostCheck();commLine(d);
   if(l)renderActs();
   $("dlg").showModal();
 }
@@ -450,15 +458,22 @@ function renderActs(){
   const list=acts.filter(a=>a.lead_id===editing);
   $("actList").innerHTML=list.map(a=>`<div class="note"><div class="by">${esc((team.find(t=>t.email===a.by_email)||{}).name||a.by_email||"")} · ${new Date(a.at).toLocaleString("en-ZA",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</div>${esc(a.text)}</div>`).join("")||`<p class="empty">No updates yet.</p>`;
 }
-$("leadForm").addEventListener("input",e=>{if(e.target.name==="client")insCheck();commLine()});
+function lostCheck(){$("lostWrap").hidden=F().status.value!=="Lost"}
+$("leadForm").addEventListener("input",e=>{if(e.target.name==="client")insCheck();lostCheck();commLine()});
 $("dlgClose").addEventListener("click",()=>$("dlg").close());
 $("leadForm").addEventListener("submit",async e=>{
   e.preventDefault();
   const row={};for(const el of F()){if(!el.name)continue;row[el.name]=el.type==="checkbox"?el.checked:(el.value.trim()===""?null:el.value.trim())}
   if(row.quote_value!=null){row.quote_value=Number(String(row.quote_value).replace(/[^\d.]/g,""))||null}
+  if(row.status==="Lost"&&!row.lost_reason){$("dlgMsg").textContent="Please fill in the reason it was lost before saving.";F().lost_reason.focus();return}
+  if(row.status!=="Lost")row.lost_reason=null;
+  if(row.introduced_by&&row.introduced_by!==row.rep&&!row.intro_permission){$("dlgMsg").textContent="This is a referral: please say whether the client agreed to the introduction.";F().intro_permission.focus();return}
+  if(row.accepted_by&&!row.accepted_date)row.accepted_date=todayStr();
   if(row.status==="Won"&&!row.closed_by)row.closed_by=row.rep;
   if(!row.first_contact_date&&row.call_type&&row.outcome&&row.outcome!=="No answer")row.first_contact_date=row.date;
   if(!row.visit_date&&["Meeting","Site assessment"].includes(row.call_type))row.visit_date=row.date;
+  {const ord=["New referral","Accepted","Contacted","Meeting or assessment","Quoted"],i=ord.indexOf(row.status);
+   if(i>=0){let n=i;if(row.accepted_by)n=Math.max(n,1);if(row.first_contact_date)n=Math.max(n,2);if(row.visit_date||row.site_assessment_done)n=Math.max(n,3);if(row.sent_to_client_date)n=Math.max(n,4);row.status=ord[n]}}
   $("dlgMsg").textContent="Saving…";
   let res;
   if(editing){res=await sb.from("sf_leads").update(row).eq("id",editing).select().single()}
@@ -490,7 +505,7 @@ $("newLead").addEventListener("click",()=>{pendingTarget=null;openLead(null)});
 document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>{tab=b.dataset.tab;document.querySelectorAll(".tabs button").forEach(x=>x.setAttribute("aria-selected",x===b));document.querySelectorAll("[data-pane]").forEach(p=>p.hidden=p.dataset.pane!==tab);try{localStorage.setItem("sf-tab",tab)}catch(_){}render()}));
 ["q","fCo","fRep","fStatus","fFlag","tList","tPri","tStatus","tq","tMine","sMonth","dayRep"].forEach(id=>$(id).addEventListener("input",render));
 $("csvBtn").addEventListener("click",()=>{
-  const cols=["date","company_sold_for","rep","lead_source","introduced_by","area","industry","client","contact_person","phone","email","site_address","heat","call_type","outcome","next_action","next_action_date","first_contact_date","visit_date","site_assessment_done","databox_loaded","details_verified","databox_report_no","qb_quote_no","quote_value","checked_by","checked_date","quotes_group_approved_date","sent_to_client_date","status","closed_by","client_start_date","commission_valid_until","closer_commission","introducer_commission","notes"];
+  const cols=["date","company_sold_for","rep","lead_source","introduced_by","area","industry","client","contact_person","phone","email","site_address","heat","call_type","outcome","next_action","next_action_date","first_contact_date","visit_date","site_assessment_done","databox_loaded","details_verified","databox_report_no","qb_quote_no","quote_value","checked_by","checked_date","quotes_group_approved_date","sent_to_client_date","status","closed_by","client_start_date","commission_valid_until","closer_commission","introducer_commission","intro_permission","accepted_by","accepted_date","lost_reason","notes"];
   const csv=[cols.join(","),...leads.map(l=>cols.map(c=>{const v=l[c]??"";return /[",\n]/.test(String(v))?`"${String(v).replace(/"/g,'""')}"`:v}).join(","))].join("\n");
   const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["﻿"+csv],{type:"text/csv"}));a.download="sales-force-"+todayStr()+".csv";document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),500);
 });
