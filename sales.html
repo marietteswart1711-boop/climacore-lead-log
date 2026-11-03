@@ -168,6 +168,9 @@ legend{font:700 12px var(--f-body);text-transform:uppercase;letter-spacing:.05em
       <thead><tr><th class="num">#</th><th>Client</th><th>Pri</th><th class="hide-sm">Sector</th><th class="hide-sm">Why it fits</th><th class="num hide-sm">Group spend</th><th>Owner &amp; rep</th><th class="hide-sm">Contact</th><th>Status</th><th></th></tr></thead>
       <tbody id="tRows"></tbody>
     </table></div>
+    <div class="panel" style="margin-top:12px"><h2>Owner &amp; rep change log <span class="muted" id="logCount"></span></h2><p class="sub">Every change to a client's or partner's Owner or Rep, with who made it and when. Recorded automatically.</p>
+      <div class="filters" style="margin:10px 0"><input type="search" id="logQ" placeholder="Search client, person, company…"></div>
+      <div class="tbl-wrap" style="max-height:50vh"><table><thead><tr><th>When</th><th>Client</th><th class="hide-sm">List</th><th>Field</th><th>From</th><th>To</th><th>Changed by</th></tr></thead><tbody id="logRows"></tbody></table></div></div>
   </section>
 
   <!-- SCOREBOARD -->
@@ -306,6 +309,10 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const money=n=>n==null||n===""?"":Number(n).toLocaleString("en-ZA",{maximumFractionDigits:0});
 const todayStr=()=>new Date(Date.now()+2*3600e3).toISOString().slice(0,10);
+const fmtDT=d=>d?new Date(d).toLocaleString("en-ZA",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"";
+let ownerLog=[];
+function renderLog(){const q=($("logQ").value||"").toLowerCase();const rows=ownerLog.filter(x=>!q||[x.client,x.list_name,x.old_value,x.new_value,x.changed_by].join(" ").toLowerCase().includes(q));$("logCount").textContent=`(${ownerLog.length})`;$("logRows").innerHTML=rows.slice(0,300).map(x=>`<tr style="cursor:default"><td style="white-space:nowrap">${fmtDT(x.at)}</td><td><b>${esc(x.client||"")}</b></td><td class="hide-sm muted">${esc(x.list_name||"")}</td><td>${esc(x.field)}</td><td class="muted">${esc(x.old_value||"(blank)")}</td><td>${esc(x.new_value||"(blank)")}</td><td>${esc(x.changed_by||"")}</td></tr>`).join("")||`<tr><td colspan="7" class="empty">No changes yet.</td></tr>`}
+async function loadLog(){const {data,error}=await sb.from("sf_owner_log").select("*").order("at",{ascending:false}).limit(1000);if(!error){ownerLog=data||[];renderLog()}}
 const fmtD=d=>d?new Date(d+"T00:00:00").toLocaleDateString("en-ZA",{day:"numeric",month:"short"}):"";
 const OPTS={
   companies:["DC24","Climacore","Leakfind","Reline24","Electricore"],
@@ -382,7 +389,7 @@ function renderTargets(){
   const rows=targets.filter(t=>t.list_name===ln&&(!pr||t.priority===pr)&&(!st||t.status===st)&&(!mine||[t.suggested_rep,t.relationship_owner,t.claimed_by].join(" ").includes(meName))&&(!q||[t.client,t.area,t.sector,t.relationship_owner,t.suggested_rep,t.why_fits,t.notes].join(" ").toLowerCase().includes(q))).sort((a,b)=>(a.rank??1e9)-(b.rank??1e9));
   $("tInfo").textContent=targets.length?`${rows.length} of ${targets.filter(t=>t.list_name===ln).length} on this list. “Start lead” logs it on the tracker and marks the target as yours.`:"The target lists haven't been loaded yet. A manager can load them under Sales manager → Manager settings.";
   const shown=rows.slice(0,400);
-  $("tRows").innerHTML=shown.map(t=>`<tr data-tid="${t.id}"><td class="num">${t.rank??""}</td><td><b>${esc(t.client)}</b>${t.area?`<div class="muted">${esc(t.area)}</div>`:""}${isInsurer(t.client)?`<div><span class="flag">Insurer</span></div>`:""}</td><td>${esc(t.priority||"")}</td><td class="hide-sm">${esc(t.sector||"")}</td><td class="hide-sm" style="max-width:280px">${esc(t.why_fits||t.notes||"")}</td><td class="num hide-sm">${money(t.group_spend)}</td><td><span class="cell-lbl" style="margin-top:0">Owner</span><input class="cell-edit" list="ownerOpts" data-tedit="relationship_owner" data-tid="${t.id}" value="${esc(t.relationship_owner||"")}" placeholder="Company or rep" title="Owner: company (Leakfind, PipeRenu, DC24, Climacore, Electricore) or the rep who claimed it"><span class="cell-lbl">Rep</span><input class="cell-edit" list="repOpts" data-tedit="suggested_rep" data-tid="${t.id}" value="${esc(t.suggested_rep||"")}" placeholder="Rep" title="Rep working this client">${t.claimed_by?`<div class="muted">taken by ${esc(t.claimed_by)}</div>`:""}</td><td class="hide-sm" style="max-width:220px;overflow-wrap:anywhere">${esc([t.contact,t.phone,t.email].filter(Boolean).join(" · "))}</td><td><select class="tst" data-tid="${t.id}">${["Not started","In progress","Converted to lead","Do not pursue"].map(o=>`<option ${o===t.status?"selected":""}>${o}</option>`).join("")}</select></td><td>${t.lead_id?`<button class="small" data-open="${t.lead_id}" type="button">Open lead</button>`:`<button class="small primary" data-start="${t.id}" type="button">Start lead</button>`}</td></tr>`).join("")+(rows.length>400?`<tr><td colspan="10" class="empty">Showing the first 400. Narrow it down with the filters.</td></tr>`:"");
+  $("tRows").innerHTML=shown.map(t=>`<tr data-tid="${t.id}"><td class="num">${t.rank??""}</td><td><b>${esc(t.client)}</b>${t.area?`<div class="muted">${esc(t.area)}</div>`:""}${isInsurer(t.client)?`<div><span class="flag">Insurer</span></div>`:""}</td><td>${esc(t.priority||"")}</td><td class="hide-sm">${esc(t.sector||"")}</td><td class="hide-sm" style="max-width:280px">${esc(t.why_fits||t.notes||"")}</td><td class="num hide-sm">${money(t.group_spend)}</td><td><span class="cell-lbl" style="margin-top:0">Owner</span><input class="cell-edit" list="ownerOpts" data-tedit="relationship_owner" data-tid="${t.id}" value="${esc(t.relationship_owner||"")}" placeholder="Company or rep" title="Owner: company (Leakfind, PipeRenu, DC24, Climacore, Electricore) or the rep who claimed it"><span class="cell-lbl">Rep</span><input class="cell-edit" list="repOpts" data-tedit="suggested_rep" data-tid="${t.id}" value="${esc(t.suggested_rep||"")}" placeholder="Rep" title="Rep working this client">${t.owner_changed_by?`<div class="muted" style="font-size:11px">Changed by ${esc(t.owner_changed_by)} · ${fmtDT(t.owner_changed_at)}</div>`:""}${t.claimed_by?`<div class="muted">taken by ${esc(t.claimed_by)}</div>`:""}</td><td class="hide-sm" style="max-width:220px;overflow-wrap:anywhere">${esc([t.contact,t.phone,t.email].filter(Boolean).join(" · "))}</td><td><select class="tst" data-tid="${t.id}">${["Not started","In progress","Converted to lead","Do not pursue"].map(o=>`<option ${o===t.status?"selected":""}>${o}</option>`).join("")}</select></td><td>${t.lead_id?`<button class="small" data-open="${t.lead_id}" type="button">Open lead</button>`:`<button class="small primary" data-start="${t.id}" type="button">Start lead</button>`}</td></tr>`).join("")+(rows.length>400?`<tr><td colspan="10" class="empty">Showing the first 400. Narrow it down with the filters.</td></tr>`:"");
 }
 /* ---------- SCOREBOARD ---------- */
 const currentMonth=()=>todayStr().slice(0,7);
@@ -428,7 +435,7 @@ function renderBriefs(){
 }
 function renderRules(){
   $("pCount").textContent=`(${partners.length})`;$("iCount").textContent=`(${insurers.length})`;
-  $("pRows").innerHTML=partners.map(p=>`<tr style="cursor:default"><td><b>${esc(p.partner)}</b></td><td>${esc(p.status||"")}</td><td>${esc(p.tier||"")}</td><td>${esc([p.contact,p.phone,p.email].filter(Boolean).join(" · "))}</td><td><input class="cell-edit" list="ownerOpts" data-pedit="relationship_owner" data-pid="${p.id}" value="${esc(p.relationship_owner||"")}" placeholder="Company or rep"></td><td class="num">${money(p.group_sales)}</td><td style="max-width:320px">${esc(p.notes||"")}</td></tr>`).join("")||`<tr><td colspan="7" class="empty">Not loaded yet.</td></tr>`;
+  $("pRows").innerHTML=partners.map(p=>`<tr style="cursor:default"><td><b>${esc(p.partner)}</b></td><td>${esc(p.status||"")}</td><td>${esc(p.tier||"")}</td><td>${esc([p.contact,p.phone,p.email].filter(Boolean).join(" · "))}</td><td><input class="cell-edit" list="ownerOpts" data-pedit="relationship_owner" data-pid="${p.id}" value="${esc(p.relationship_owner||"")}" placeholder="Company or rep">${p.owner_changed_by?`<div class="muted" style="font-size:11px">Changed by ${esc(p.owner_changed_by)} · ${fmtDT(p.owner_changed_at)}</div>`:""}</td><td class="num">${money(p.group_sales)}</td><td style="max-width:320px">${esc(p.notes||"")}</td></tr>`).join("")||`<tr><td colspan="7" class="empty">Not loaded yet.</td></tr>`;
   $("iRows").innerHTML=insurers.map(i=>`<tr style="cursor:default"><td>${esc(i.client)}</td><td class="muted">${esc(i.also_known_as||"")}</td></tr>`).join("")||`<tr><td colspan="2" class="empty">Not loaded yet.</td></tr>`;
 }
 function render(){
@@ -507,7 +514,7 @@ document.addEventListener("change",async e=>{
     const row=(te?targets:partners).find(x=>x.id===id);const old=row?row[f]:null;if(row)row[f]=v;
     const upd={[f]:v};if(te)upd.updated_at=new Date().toISOString();
     const {error}=await sb.from(tbl).update(upd).eq("id",id);
-    if(error){if(row)row[f]=old;e.target.value=old||"";alertMsg("Couldn't save the change.")}else alertMsg("Saved.");return}
+    if(error){if(row)row[f]=old;e.target.value=old||"";alertMsg("Couldn't save the change.")}else {alertMsg("Saved.");loadLog();te?loadTargets():loadRef()}return}
   if(e.target.classList.contains("tst")){const {error}=await sb.from("sf_targets").update({status:e.target.value,claimed_by:e.target.value==="Not started"?null:meName,claimed_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq("id",e.target.dataset.tid);if(error)alertMsg("Couldn't update the target.");}
 });
 const alertMsg=m=>{$("sync").textContent=m};
@@ -569,12 +576,14 @@ async function startApp(session){
   $("fRep").innerHTML=`<option value="">All reps</option>`+reps().map(c=>`<option>${esc(c)}</option>`).join("");
   $("fStatus").innerHTML=`<option value="">All statuses</option>`+OPTS.statuses.map(c=>`<option>${c}</option>`).join("");
   try{const t=localStorage.getItem("sf-tab");if(t)document.querySelector(`.tabs [data-tab="${t}"]`)?.click()}catch(_){}
-  await Promise.all([loadLeads(),loadActs(),loadRef(),loadBriefs(),isMgr?loadMail():null]);loadTargets();
+  await Promise.all([loadLeads(),loadActs(),loadRef(),loadBriefs(),isMgr?loadMail():null]);loadTargets();loadLog();$("logQ").addEventListener("input",renderLog);
   const tm={};const deb=(k,fn)=>{clearTimeout(tm[k]);tm[k]=setTimeout(fn,400)};
   sb.channel("sales-force")
     .on("postgres_changes",{event:"*",schema:"public",table:"sf_leads"},()=>deb("l",loadLeads))
     .on("postgres_changes",{event:"*",schema:"public",table:"sf_activity"},()=>deb("a",async()=>{await loadActs();if($("dlg").open&&editing)renderActs()}))
     .on("postgres_changes",{event:"*",schema:"public",table:"sf_targets"},()=>deb("t",loadTargets))
+    .on("postgres_changes",{event:"*",schema:"public",table:"sf_owner_log"},()=>deb("o",loadLog))
+    .on("postgres_changes",{event:"*",schema:"public",table:"sf_partners"},()=>deb("p",loadRef))
     .on("postgres_changes",{event:"*",schema:"public",table:"sf_briefings"},()=>deb("b",loadBriefs))
     .subscribe();
   document.addEventListener("visibilitychange",()=>{if(!document.hidden){loadLeads();loadBriefs()}});
