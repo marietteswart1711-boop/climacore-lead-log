@@ -1,0 +1,2038 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Climacore Quote Builder 2.1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: private workings and form on the left, the finished quote sheet pinned on the right. */
+:root {
+  --bg: #f3f4f6;
+  --surface: #ffffff;
+  --surface2: #e8eaee;
+  --ink: #0a0a0b;
+  --muted: #585d68;
+  --line: #d6d9df;
+  --accent: #4169e1;
+  --on-accent: #ffffff;
+  --accent-soft: #e1e8fc;
+  --blue: #2f4fc4;
+  --danger: #b3261e;
+  --paper: #ffffff;
+  --paper-ink: #1b1b1b;
+  --paper-muted: #6a6a6a;
+  --paper-line: #c9d1d1;
+  --paper-black: #111111;
+  --paper-royal: #4169e1;
+  --paper-blue: #2f4fc4;
+  --paper-tint: #eaf0fd;
+  --shadow: 0 1px 2px rgba(10, 30, 28, 0.08), 0 8px 24px rgba(10, 30, 28, 0.08);
+  --f-display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+  --f-body: 'Figtree', 'Segoe UI', system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #09090b;
+    --surface: #131316;
+    --surface2: #1b1b20;
+    --ink: #f2f3f5;
+    --muted: #a3a7b1;
+    --line: #2a2c33;
+    --accent: #7b9bf2;
+    --on-accent: #08122e;
+    --accent-soft: #18224a;
+    --blue: #9bb4f5;
+    --danger: #f28b82;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
+    color-scheme: dark;
+  }
+}
+:root[data-theme='dark'] {
+  --bg: #09090b;
+  --surface: #131316;
+  --surface2: #1b1b20;
+  --ink: #f2f3f5;
+  --muted: #a3a7b1;
+  --line: #2a2c33;
+  --accent: #7b9bf2;
+  --on-accent: #08122e;
+  --accent-soft: #18224a;
+  --blue: #9bb4f5;
+  --danger: #f28b82;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 15px;
+  line-height: 1.45;
+  padding-inline: 16px;
+  padding-block: 0 48px;
+}
+.app { max-width: 1280px; margin-inline: auto; }
+h1, h2, h3, h4 { font-family: var(--f-display); text-wrap: balance; margin: 0; }
+button, input, select, textarea { font: inherit; color: inherit; }
+.muted { color: var(--muted); }
+.num, .figures b, td.r, .line-out b { font-variant-numeric: tabular-nums; }
+
+/* top bar */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-block: 16px 12px; }
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.logo-tile { background: #fff; border-radius: 10px; padding: 4px 8px; display: grid; place-items: center; border: 1px solid var(--line); }
+.logo-tile img { display: block; height: 44px; width: auto; }
+.brand h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+.brand p { margin: 0; font-size: 13px; }
+.top-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.btn {
+  min-height: 42px; padding: 8px 16px; border-radius: 8px; border: 1px solid var(--line);
+  background: var(--surface); cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.btn.primary:hover { filter: brightness(1.06); }
+.btn.small { min-height: 34px; padding: 4px 12px; font-size: 14px; }
+.btn.danger { color: var(--danger); border-color: var(--danger); }
+.btn:disabled { opacity: 0.55; cursor: default; }
+:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+.count { background: var(--accent-soft); color: var(--accent); border-radius: 99px; padding: 0 8px; font-size: 13px; min-width: 24px; text-align: center; }
+
+.banner {
+  display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 10px; padding: 10px 14px; margin-bottom: 12px;
+}
+.banner p { margin: 0; }
+
+/* mobile tabs */
+.tabs { display: none; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 8px; gap: 8px; align-items: center; }
+.tabs .seg { flex: 1; }
+.tabs .mini { font-family: var(--f-display); font-weight: 700; font-size: 16px; white-space: nowrap; }
+
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.seg label { position: relative; }
+.seg label, .seg button { flex: 1; min-height: 40px; padding: 8px 14px; cursor: pointer; text-align: center; font-weight: 600; border: 0; background: transparent; display: grid; place-items: center; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label:has(input:checked), .seg button[aria-selected='true'] { background: var(--accent); color: var(--on-accent); }
+.seg label:has(input:focus-visible) { outline: 3px solid var(--blue); outline-offset: -3px; }
+
+/* layout */
+.shell { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 600px); gap: 28px; align-items: start; }
+.build { display: grid; gap: 4px; min-width: 0; }
+.side { position: sticky; top: 12px; display: grid; gap: 14px; min-width: 0; max-height: calc(100vh - 24px); overflow: auto; padding-bottom: 4px; }
+
+.panel { border-top: 1px solid var(--line); padding-block: 18px 14px; display: grid; gap: 14px; min-width: 0; }
+.panel:first-child { border-top: 0; padding-top: 6px; }
+.panel h2 { font-size: 18px; font-weight: 700; }
+.panel .hint { margin: -6px 0 0; color: var(--muted); font-size: 13.5px; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.f { display: grid; gap: 4px; min-width: 0; align-content: start; }
+.f > span, .lbl { font-size: 12.5px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.f.wide { grid-column: 1 / -1; }
+input[type='text'], input[type='date'], input[type='email'], input[type='tel'], input:not([type]), select, textarea {
+  width: 100%; min-height: 44px; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); font-size: 16px;
+}
+textarea { resize: vertical; line-height: 1.45; }
+input:focus, select:focus, textarea:focus { border-color: var(--accent); outline: 2px solid var(--accent); outline-offset: 0; }
+.chk { display: flex; align-items: center; gap: 8px; min-height: 40px; font-weight: 500; cursor: pointer; }
+.chk input { width: 20px; height: 20px; accent-color: var(--accent); }
+.inline { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; }
+.suffix { position: relative; }
+.suffix input { padding-right: 34px; }
+.suffix::after { content: attr(data-s); position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+.f .suffix { margin-top: 0; }
+
+/* pricing lines */
+.lines { display: grid; gap: 12px; }
+.line { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 12px; display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+.line-head { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.kind { font-family: var(--f-display); font-weight: 700; font-size: 15px; }
+.line .f.wide { grid-column: 1 / -1; }
+.line-foot { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; border-top: 1px dashed var(--line); padding-top: 8px; }
+.line-out { text-align: right; }
+.line-out span { display: block; font-size: 12px; color: var(--muted); }
+.line-out b { font-family: var(--f-display); font-size: 17px; }
+.empty { border: 1px dashed var(--line); border-radius: 10px; padding: 16px; color: var(--muted); }
+.adds { display: flex; gap: 8px; flex-wrap: wrap; }
+.linkbtn { background: none; border: 0; color: var(--blue); cursor: pointer; text-decoration: underline; padding: 6px; min-height: 32px; }
+
+/* figures */
+.figures { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: grid; gap: 12px; }
+.figures .tag { font-size: 12.5px; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.fig-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.fig span { display: block; font-size: 12px; color: var(--muted); }
+.fig b { font-family: var(--f-display); font-size: 16px; }
+.fig-total { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 10px; }
+.fig-total span { font-weight: 600; }
+.fig-total b { font-family: var(--f-display); font-size: 28px; letter-spacing: -0.01em; color: var(--accent); }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.actions .state { font-size: 13px; color: var(--muted); }
+
+/* paper preview: always a white sheet */
+.paper-wrap { overflow-x: auto; }
+.paper { background: var(--paper); color: var(--paper-ink); box-shadow: var(--shadow); border-radius: 3px; padding: 28px 30px 26px; font-family: Calibri, Carlito, 'Segoe UI', system-ui, sans-serif; font-size: 12.5px; line-height: 1.4; min-width: 0; }
+.paper * { color: inherit; }
+.p-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.p-head img { height: 52px; width: auto; display: block; }
+.p-addr { text-align: right; font-size: 10.5px; color: var(--paper-muted); }
+.p-rule { display: grid; grid-template-columns: 1fr 1fr; height: 3px; margin: 8px 0 14px; }
+.p-rule i:first-child { background: var(--paper-black); }
+.p-rule i:last-child { background: var(--paper-royal); }
+.p-date { text-align: right; margin-bottom: 10px; }
+.p-client b { font-size: 16px; }
+.paper .p-title { font-family: inherit; font-size: 22px; font-weight: 700; color: var(--paper-blue); margin: 16px 0 6px; }
+.p-info { display: grid; grid-template-columns: 90px 1fr; gap: 2px 10px; margin: 0; }
+.p-info dt { font-weight: 700; }
+.p-info dd { margin: 0; }
+.paper h4 { font-family: inherit; font-size: 14px; font-weight: 700; color: var(--paper-blue); margin: 14px 0 5px; }
+.paper p { margin: 0 0 5px; }
+.p-scroll { overflow-x: auto; }
+.paper table { width: 100%; border-collapse: collapse; }
+.paper th { background: var(--paper-black); color: #fff; text-align: left; padding: 5px 7px; font-weight: 700; border: 1px solid var(--paper-black); }
+.paper th { color: #fff; }
+.paper td { padding: 5px 7px; border: 1px solid var(--paper-line); vertical-align: top; }
+.paper .r { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.p-tot { margin-top: 8px; }
+.p-tot td { text-align: right; }
+.p-tot tr.grand td { background: var(--paper-tint); font-weight: 700; }
+.paper ol { margin: 0; padding-left: 20px; font-size: 11.5px; }
+.paper ol li { margin-bottom: 4px; }
+.p-sig { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 6px; }
+.p-sig div { line-height: 2; }
+.p-foot { margin-top: 18px; padding-top: 6px; border-top: 1px solid var(--paper-line); text-align: center; font-size: 10px; color: var(--paper-muted); }
+.paper .ph { color: var(--paper-muted); font-style: italic; }
+
+/* saved quotes sheet */
+.sheet-back { position: fixed; inset: 0; background: rgba(5, 15, 14, 0.5); z-index: 20; display: grid; justify-items: end; }
+.sheet { width: min(480px, 100%); height: 100%; background: var(--bg); padding: 16px; padding-top: calc(16px + env(safe-area-inset-top, 0px)); overflow: auto; display: grid; gap: 12px; align-content: start; box-shadow: var(--shadow); }
+.sheet-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.sheet h2 { font-size: 20px; }
+.saved-item { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: grid; gap: 8px; }
+.saved-item .row { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.saved-item b { font-family: var(--f-display); }
+.saved-item .btns { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 8px; z-index: 30; box-shadow: var(--shadow); max-width: calc(100vw - 32px); }
+
+/* narrow screens: one view at a time */
+@media (max-width: 1000px) {
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  .tabs { display: flex; }
+  .shell[data-view='build'] .side { display: none; }
+  .shell[data-view='quote'] .build { display: none; }
+  .side { position: static; max-height: none; overflow: visible; }
+}
+@media (max-width: 560px) {
+  .fig-grid { grid-template-columns: 1fr 1fr; }
+  .paper { padding: 18px 14px; }
+  .p-sig { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+
+.done { margin: 0; padding: 12px 14px; border-radius: 10px; background: var(--accent-soft); border: 1px solid var(--accent); font-size: 14px; }
+
+/* version 2.0 additions */
+.ver { font-family: var(--f-body); font-size: 12px; font-weight: 700; letter-spacing: 0.04em; background: var(--accent-soft); color: var(--accent); border-radius: 99px; padding: 2px 9px; vertical-align: middle; margin-left: 6px; }
+.invchoice { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.invchoice > span { font-weight: 600; margin-right: 4px; }
+.sheet h3 { font-size: 16px; display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.sheet .note { margin: 0; color: var(--muted); font-size: 13.5px; }
+.sheet.imp { width: min(780px, 100%); }
+.memlist { display: grid; gap: 8px; }
+.mem-item { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+.mem-item > div { min-width: 0; overflow-wrap: anywhere; }
+.mem-item small { display: block; color: var(--muted); font-size: 12.5px; }
+.imp-row { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: grid; gap: 8px; grid-template-columns: auto minmax(0, 1fr) 84px 130px; align-items: end; }
+.imp-row.off { opacity: 0.55; }
+.imp-row .f.d { min-width: 0; }
+.imp-row .tot { grid-column: 2 / -1; text-align: right; font-size: 13px; color: var(--muted); }
+.imp-row .chk { min-height: 44px; }
+.seg.filter { justify-self: start; }
+.signin-back { position: fixed; inset: 0; z-index: 40; background: var(--bg); display: grid; place-items: center; padding: 16px; }
+.signin { width: min(400px, 100%); background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: grid; gap: 14px; box-shadow: var(--shadow); }
+.signin h2 { font-size: 20px; }
+.signin p { margin: 0; }
+.signin .err { color: var(--danger); font-size: 14px; }
+.lead-box { background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 10px; padding: 12px 14px; display: grid; gap: 10px; }
+.lead-box p { margin: 0; font-size: 14px; }
+.lead-box .btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.lead-chip { background: var(--surface); border: 1px solid var(--accent); color: var(--accent); border-radius: 99px; padding: 0 8px; font-size: 12.5px; font-weight: 600; }
+.signed { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.linkbtn { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; font-weight: 600; text-decoration: underline; font-size: 13px; }
+.tag-pill { background: var(--accent-soft); color: var(--accent); border-radius: 99px; padding: 0 8px; font-size: 12.5px; font-weight: 600; }
+@media (max-width: 560px) { .imp-row { grid-template-columns: auto minmax(0, 1fr); } .imp-row .f.d { grid-column: 2; } .imp-row .tot { grid-column: 1 / -1; } .imp-row .q, .imp-row .u { grid-column: auto; } }
+
+</style>
+
+<div class="signin-back" id="signinBack" hidden>
+  <form class="signin" id="signinForm" autocomplete="on">
+    <h2>Sign in to the Quote Builder</h2>
+    <p class="muted">Use the same email and password as the ClimaCore Lead Log. Quotes and invoices are saved to the lead log, so the team sees the price, invoice and payment for each lead.</p>
+    <label class="f"><span>Email</span><input type="email" id="si-email" autocomplete="username" required></label>
+    <label class="f"><span>Password</span><input type="password" id="si-pass" autocomplete="current-password" required></label>
+    <p class="err" id="si-err" role="alert" hidden></p>
+    <button class="btn primary" id="si-go" type="submit">Sign in</button>
+  </form>
+</div>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <div class="logo-tile"><img id="brandLogo" alt="Climacore"></div>
+      <div>
+        <h1>Quote Builder <span class="ver">2.1</span></h1>
+        <p class="muted signed"><span id="storeNote">Connecting to the lead log…</span> <button class="linkbtn" id="btnSignOut" type="button" hidden>Sign out</button></p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="btn" id="btnNew" type="button">New quote</button>
+      <button class="btn" id="btnNewInv" type="button">New invoice</button>
+      <button class="btn" id="btnSaved" type="button">Saved <span class="count" id="savedCount">0</span></button>
+      <button class="btn" id="btnMemory" type="button">Memory</button>
+    </div>
+  </header>
+
+  <div class="banner" id="example" hidden>
+    <p><b>Example figures are showing.</b> Type over them with your own, or start from a blank quote.</p>
+    <button class="btn small" id="btnBlank" type="button">Start blank</button>
+  </div>
+
+  <div class="banner" id="uploadBanner" hidden>
+    <p id="uploadText"></p>
+    <button class="btn small" id="btnUpload" type="button">Upload them</button>
+  </div>
+
+  <div class="tabs" role="tablist" aria-label="View">
+    <div class="seg">
+      <button type="button" role="tab" id="tabBuild" data-view="build" aria-selected="true">Build</button>
+      <button type="button" role="tab" id="tabQuote" data-view="quote" aria-selected="false">Quote</button>
+    </div>
+    <span class="mini num" id="miniTotal">R 0.00</span>
+  </div>
+
+  <div class="shell" id="shell" data-view="build">
+    <main class="build">
+      <section class="panel" aria-labelledby="h-client">
+        <h2 id="h-client">Client</h2>
+        <div class="grid">
+          <label class="f"><span>Client or company</span><input type="text" id="f-client-name" data-f="client.name" autocomplete="off" list="dlClients"></label>
+          <label class="f"><span>Contact person</span><input type="text" id="f-client-attention" data-f="client.attention" autocomplete="off"></label>
+          <label class="f wide"><span>Address or suburb</span><textarea id="f-client-address" data-f="client.address" rows="2"></textarea></label>
+          <label class="f"><span>Contact number</span><input type="tel" id="f-client-phone" data-f="client.phone" autocomplete="off"></label>
+          <label class="f"><span>Email</span><input type="email" id="f-client-email" data-f="client.email" autocomplete="off"></label>
+        </div>
+        <div class="lead-box" id="leadBox">
+          <label class="f wide"><span>Lead in the ClimaCore Lead Log</span><input type="text" id="f-lead" list="dlLeads" autocomplete="off" placeholder="Type a name, number or lead number (L045)"></label>
+          <datalist id="dlLeads"></datalist>
+          <p id="leadInfo">Not linked to a lead yet.</p>
+          <div class="btns">
+            <button class="btn small" id="btnLeadSuggest" type="button" hidden></button>
+            <button class="btn small" id="btnLeadNew" type="button">Add this client as a new lead</button>
+            <button class="btn small danger" id="btnLeadClear" type="button" hidden>Unlink</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-details">
+        <h2 id="h-details">Quote details</h2>
+        <div class="grid">
+          <label class="f"><span id="lblNumber">Quote number</span><input type="text" id="f-number" data-f="number" autocomplete="off"></label>
+          <label class="f"><span>Date</span><input type="date" id="f-date" data-f="date"></label>
+          <label class="f" data-for="quote"><span>Valid for</span><div class="suffix" data-s="days"><input type="text" inputmode="numeric" id="f-validDays" data-f="validDays"></div></label>
+          <label class="f"><span>Reference</span><input type="text" id="f-reference" data-f="reference" autocomplete="off"></label>
+          <label class="f wide" data-for="quote"><span>Scope of work</span><textarea id="f-scope" data-f="scope" rows="3"></textarea></label>
+        </div>
+      </section>
+
+      <section class="panel" data-for="invoice" hidden aria-labelledby="h-inv">
+        <h2 id="h-inv">Invoice</h2>
+        <p class="hint" id="invFrom"></p>
+        <div class="grid">
+          <label class="f wide"><span>Description on the invoice</span><input type="text" id="f-inv-desc" data-f="singleDesc" autocomplete="off"></label>
+          <label class="f"><span>Amount excl. VAT (R)</span><input type="text" inputmode="decimal" id="f-inv-amount" data-f="invAmount" autocomplete="off"></label>
+          <div class="f"><span>VAT</span>
+            <div class="inline">
+              <label class="chk"><input type="checkbox" id="f-inv-vatOn" data-f="vatOn"> Charge VAT</label>
+              <div class="suffix" data-s="%" style="width:96px"><input type="text" inputmode="decimal" id="f-inv-vatRate" data-f="vatRate" aria-label="VAT rate"></div>
+            </div>
+          </div>
+          <label class="f"><span>Payment due in</span><div class="suffix" data-s="days"><input type="text" inputmode="numeric" id="f-dueDays" data-f="dueDays"></div></label>
+          <label class="f"><span>Climacore VAT number</span><input type="text" id="f-vatNo" data-f="vatNo" autocomplete="off"></label>
+          <label class="f wide"><span>Banking details, one line each</span><textarea id="f-banking" data-f="banking" rows="4" placeholder="Bank&#10;Account name&#10;Account number&#10;Branch code"></textarea></label>
+        </div>
+        <label class="chk"><input type="checkbox" id="f-paid" data-f="paid"> This invoice has been paid</label>
+        <div><button class="btn small" id="btnInvDefaults" type="button">Use the VAT number, banking details and due days as my defaults</button></div>
+      </section>
+
+      <section class="panel" data-for="quote" aria-labelledby="h-pricing">
+        <h2 id="h-pricing">Pricing</h2>
+        <p class="hint">Add every cost below. The markup is added to the lines marked for it, and the quote total is worked out for you.</p>
+        <div class="grid">
+          <label class="f"><span>Markup on equipment</span><div class="suffix" data-s="%"><input type="text" inputmode="decimal" id="f-markup" data-f="markup"></div></label>
+          <label class="f"><span>Extra uplift on whole quote</span><div class="suffix" data-s="%"><input type="text" inputmode="decimal" id="f-uplift" data-f="uplift"></div></label>
+          <div class="f"><span>VAT</span>
+            <div class="inline">
+              <label class="chk"><input type="checkbox" id="f-vatOn" data-f="vatOn"> Charge VAT</label>
+              <div class="suffix" data-s="%" style="width:96px"><input type="text" inputmode="decimal" id="f-vatRate" data-f="vatRate" aria-label="VAT rate"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="f">
+          <span>How the quote shows the price</span>
+          <div class="seg" role="radiogroup" aria-label="Quote layout">
+            <label><input type="radio" name="mode" id="f-mode-single" data-f="mode" value="single"> One line item</label>
+            <label><input type="radio" name="mode" id="f-mode-itemised" data-f="mode" value="itemised"> Itemised</label>
+          </div>
+          <p class="hint" id="modeHint" style="margin:4px 0 0"></p>
+        </div>
+        <label class="f wide" id="singleBox"><span>Line item wording</span><input type="text" id="f-singleDesc" data-f="singleDesc" autocomplete="off"></label>
+
+        <div class="lines" id="lines" aria-live="polite"></div>
+        <div class="adds" role="group" aria-label="Add a cost line">
+          <button class="btn small" type="button" data-act="add" data-kind="material">+ Equipment or material</button>
+          <button class="btn small" type="button" data-act="add" data-kind="labour">+ Labour</button>
+          <button class="btn small" type="button" data-act="add" data-kind="travel">+ Travel</button>
+          <button class="btn small" type="button" data-act="add" data-kind="fixed">+ Other, e.g. consumables</button>
+        </div>
+        <div class="adds">
+          <button class="btn small" type="button" id="btnImport">Import supplier quote (PDF)</button>
+          <input type="file" id="f-supplier" accept="application/pdf,.pdf" hidden>
+        </div>
+      </section>
+
+      <section class="panel" data-for="quote" aria-labelledby="h-terms">
+        <h2 id="h-terms">Terms and conditions</h2>
+        <div class="grid">
+          <label class="f"><span>Start from</span>
+            <select id="f-preset" data-f="preset">
+              <option value="supply">Supply and install</option>
+              <option value="estimate">Estimate, no site visit</option>
+              <option value="sla">Service agreement (12 months)</option>
+              <option value="custom">My own wording</option>
+            </select>
+          </label>
+          <label class="f"><span>Deposit on acceptance</span><div class="suffix" data-s="%"><input type="text" inputmode="decimal" id="f-deposit" data-f="deposit"></div></label>
+          <label class="f wide"><span>Terms, one clause per line</span><textarea id="f-terms" data-f="terms" rows="12"></textarea></label>
+        </div>
+        <p class="hint">Start a clause with a short title and a full stop to make the title bold. The words {deposit}, {balance}, {valid} and {vat} fill in from the quote.</p>
+        <label class="chk"><input type="checkbox" id="f-showAcceptance" data-f="showAcceptance"> Add a signature block for the client</label>
+        <div><button class="btn small" id="btnDefaults" type="button">Use these rates and terms as my defaults</button></div>
+      </section>
+    </main>
+
+    <aside class="side" aria-label="Quote preview">
+      <div class="figures" id="figures"></div>
+      <div class="actions">
+        <button class="btn primary" id="btnSave" type="button">Save quote</button>
+        <button class="btn primary" id="btnPdf" type="button">Finish and save PDF</button>
+        <button class="btn" id="btnDocx" type="button" hidden>Save Word file</button>
+        <button class="btn" id="btnInvoice" type="button">Create invoice</button>
+        <button class="btn" id="btnCopy" type="button">Copy summary</button>
+        <span class="state" id="saveState" role="status"></span>
+      </div>
+      <div class="invchoice" id="invChoice" hidden>
+        <span>Invoice for</span>
+        <button class="btn small" type="button" data-act="invkind" data-kind="deposit" id="kDeposit">Deposit</button>
+        <button class="btn small" type="button" data-act="invkind" data-kind="balance" id="kBalance">Balance</button>
+        <button class="btn small" type="button" data-act="invkind" data-kind="full">Full amount</button>
+        <button class="linkbtn" type="button" id="kCancel">Cancel</button>
+      </div>
+      <p class="done" id="doneNote" role="status" hidden></p>
+      <div class="paper-wrap"><article class="paper" id="paper" aria-label="Quote preview"></article></div>
+    </aside>
+  </div>
+</div>
+
+<div class="sheet-back" id="savedBack" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="savedTitle">
+    <div class="sheet-top"><h2 id="savedTitle">Saved quotes and invoices</h2><button class="btn small" id="btnCloseSaved" type="button">Close</button></div>
+    <div class="seg filter" role="group" aria-label="Show">
+      <button type="button" data-filter="all" aria-selected="true">All</button>
+      <button type="button" data-filter="quote" aria-selected="false">Quotes</button>
+      <button type="button" data-filter="invoice" aria-selected="false">Invoices</button>
+    </div>
+    <input type="text" id="f-search" placeholder="Search by client or number" aria-label="Search saved quotes and invoices" autocomplete="off">
+    <div id="savedList" style="display:grid;gap:10px"></div>
+  </div>
+</div>
+<div class="sheet-back" id="memBack" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="memTitle">
+    <div class="sheet-top"><h2 id="memTitle">Memory</h2><button class="btn small" id="btnCloseMem" type="button">Close</button></div>
+    <p class="note">Clients and equipment prices are remembered from the quotes you save. Start typing a client or an item and pick it from the list.</p>
+    <h3>Clients <span class="count" id="memClientCount">0</span></h3>
+    <div class="memlist" id="memClients"></div>
+    <h3>Equipment and prices <span class="count" id="memItemCount">0</span></h3>
+    <div class="memlist" id="memItems"></div>
+    <h3>Backup</h3>
+    <p class="note">Download everything (quotes, invoices, clients, prices and your defaults), or load a backup file. Backups from version 1 load too.</p>
+    <div class="actions">
+      <button class="btn small" id="btnExport" type="button">Download backup</button>
+      <button class="btn small" id="btnLoadBackup" type="button">Load backup file</button>
+      <input type="file" id="f-backup" accept=".json,application/json" hidden>
+    </div>
+  </div>
+</div>
+<div class="sheet-back" id="impBack" hidden>
+  <div class="sheet imp" role="dialog" aria-modal="true" aria-labelledby="impTitle">
+    <div class="sheet-top"><h2 id="impTitle">Supplier quote</h2><button class="btn small" id="btnImpCancel" type="button">Cancel</button></div>
+    <p class="note" id="impMeta"></p>
+    <label class="chk"><input type="checkbox" id="impInc"> Prices on this supplier quote include VAT</label>
+    <div class="memlist" id="impRows"></div>
+    <div class="actions"><button class="btn primary" id="btnImpAdd" type="button">Add to quote</button><span class="state" id="impState"></span></div>
+  </div>
+</div>
+<datalist id="dlClients"></datalist>
+<datalist id="dlItems"></datalist>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+/* Climacore Quote Builder: calculation, terms and Word (.docx) generation. No DOM access. */
+(function (root) {
+  'use strict';
+  const C = {};
+
+  /* ---------- numbers and dates ---------- */
+  C.parseNum = function (v) {
+    if (typeof v === 'number') return isFinite(v) ? v : 0;
+    let s = String(v == null ? '' : v).replace(/[Rr\s ]/g, '');
+    if (!s) return 0;
+    if (s.includes(',') && s.includes('.')) s = s.replace(/,/g, '');
+    else if (s.includes(',')) s = /,\d{1,2}$/.test(s) ? s.replace(',', '.') : s.replace(/,/g, '');
+    const n = parseFloat(s);
+    return isFinite(n) ? n : 0;
+  };
+  const num = C.parseNum;
+  const round2 = (C.round2 = (n) => Math.round((n + Number.EPSILON) * 100) / 100);
+  C.fmt = (n) => 'R ' + round2(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  C.fmtDate = (iso) => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+    return m ? m[3] + '/' + m[2] + '/' + m[1] : '';
+  };
+  C.addDays = (iso, n) => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+    if (!m) return '';
+    const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3] + n));
+    return d.toISOString().slice(0, 10);
+  };
+
+  /* ---------- lines and totals ---------- */
+  C.KINDS = {
+    material: 'Equipment / material',
+    labour: 'Labour',
+    travel: 'Travel',
+    fixed: 'Other',
+  };
+  let seq = 0;
+  C.uid = () => 'l' + Date.now().toString(36) + (seq++).toString(36) + Math.random().toString(36).slice(2, 5);
+
+  C.newLine = function (kind, s) {
+    s = s || {};
+    const id = C.uid();
+    if (kind === 'labour') return { id, kind, desc: 'Labour', a: '1', b: String(s.hoursPerDay || 8), c: String(s.labourRate || 695), markup: false };
+    if (kind === 'travel') return { id, kind, desc: 'Travel to site and back', a: '', b: String(s.travelRate || 7.5), c: '', markup: false };
+    if (kind === 'fixed') return { id, kind, desc: 'Consumables', a: '', b: '', c: '', markup: false };
+    return { id, kind: 'material', desc: '', a: '1', b: '', c: '', markup: true };
+  };
+
+  C.lineBase = function (l) {
+    if (l.kind === 'labour') return num(l.a) * num(l.b) * num(l.c);
+    if (l.kind === 'travel') return num(l.a) * num(l.b);
+    if (l.kind === 'fixed') return num(l.a);
+    return num(l.a) * num(l.b);
+  };
+
+  C.calc = function (q) {
+    const m = 1 + num(q.markup) / 100;
+    const u = 1 + num(q.uplift) / 100;
+    const rows = q.lines.map((l) => {
+      const base = round2(C.lineBase(l));
+      const sell = round2(C.lineBase(l) * (l.markup ? m : 1) * u);
+      let qty = 1;
+      if (l.kind === 'material') qty = num(l.a);
+      else if (l.kind === 'labour') qty = num(l.a) * num(l.b);
+      else if (l.kind === 'travel') qty = num(l.a);
+      const unit = qty > 0 ? round2(sell / qty) : sell;
+      return { id: l.id, desc: l.desc, base, sell, qty: qty > 0 ? qty : 1, unit: qty > 0 ? unit : sell };
+    });
+    const cost = round2(rows.reduce((t, r) => t + r.base, 0));
+    const subtotal = round2(rows.reduce((t, r) => t + r.sell, 0));
+    const vatRate = num(q.vatRate);
+    const vat = q.vatOn ? round2((subtotal * vatRate) / 100) : 0;
+    const total = round2(subtotal + vat);
+    return { rows, cost, subtotal, vat, total, added: round2(subtotal - cost), vatRate };
+  };
+
+  C.quoteRows = function (q, calc) {
+    if (q.mode === 'itemised') {
+      return calc.rows.filter((r) => r.desc || r.sell).map((r) => ({ desc: r.desc || 'Item', qty: r.qty, unit: r.unit, total: r.sell }));
+    }
+    return [{ desc: q.singleDesc || 'Supply and installation', qty: 1, unit: calc.subtotal, total: calc.subtotal }];
+  };
+
+  C.validUntil = (q) => C.addDays(q.date, Math.round(num(q.validDays)) || 30);
+
+  /* ---------- terms ---------- */
+  const P_COMMON_TAIL = [
+    'Acceptance and payment. Acceptance of this quotation requires a signed copy of this document or an official purchase order. A deposit of {deposit}% of the total quoted amount (including VAT) is required on acceptance, before the order is placed and work begins. The remaining {balance}% is payable on completion of the work.',
+    'Labour. Labour is based on 8-hour working days in normal working hours. Any additional time, or work outside the scope described in this quotation, will be quoted and billed separately.',
+    "Site access. The Client shall provide the Service Provider's technicians with safe and reasonable access to the site on the agreed dates.",
+    "Warranty. Equipment is covered by the manufacturer's warranty. Workmanship is guaranteed for 12 months from date of completion, excluding faults arising from misuse, power surges, load-shedding or third-party interference. This does not affect the Client's rights under the Consumer Protection Act 68 of 2008.",
+  ];
+  const P_SUPPLY_HEAD = [
+    'Validity. This quotation is valid for {valid} days from the date of issue.',
+    'Prices and VAT. All prices are in South African Rand (ZAR). VAT is charged at {vat}%.',
+    'Pricing basis. Equipment pricing is based on current supplier pricing and exchange rates. Should the rand exchange rate move by more than 3% before the order is confirmed, prices will be adjusted accordingly.',
+    'Delivery. Delivery of items held in stock is estimated at 1 to 7 days from order confirmation. The lead time for items that must be ordered in will be confirmed on order confirmation.',
+  ];
+  C.PRESETS = {
+    supply: { label: 'Supply and install', text: P_SUPPLY_HEAD.concat(P_COMMON_TAIL).join('\n') },
+    estimate: {
+      label: 'Estimate, no site visit',
+      text: [
+        'Basis of quotation. This quotation has been prepared without a site visit, based on the information supplied to us. It is therefore subject to change once the site has been inspected.',
+        "Additional materials and work. Any additional materials, labour or work found to be necessary, whether on site inspection or during installation, will be quoted and charged in addition to the price in this quotation. Work outside the scope described, including builder's work, structural work and upgrades to the existing electrical distribution board or supply, is not included.",
+      ].concat(P_SUPPLY_HEAD, P_COMMON_TAIL).join('\n'),
+    },
+    sla: {
+      label: 'Service agreement (12 months)',
+      text: [
+        'Agreement period. This agreement runs for 12 months from the date of acceptance. It may be renewed for a further period by written agreement between the parties, and prices will be reviewed before any renewal.',
+        'Service schedule. Visits take place on dates agreed in advance, during normal working hours from Monday to Friday.',
+        'Scope of service. Each visit covers the preventative maintenance described in the scope of work. Any defects, worn components or additional work identified during a visit will be quoted separately and carried out only once approved in writing.',
+        'Pricing. The price per visit is as set out in this quotation and remains fixed for the 12 month agreement period. All prices exclude VAT, which is charged at {vat}% in addition. If units are added to or removed from the site, the price will be adjusted by written agreement.',
+        'Invoicing and payment. Each service visit is invoiced on completion of the visit. Invoices are payable within 30 days of the invoice date.',
+        'Client responsibilities. The Client shall give Climacore safe and reasonable access to all units on the scheduled dates and shall notify Climacore of any faults or changes to the equipment. If access is not provided on a scheduled date the visit will be rescheduled, and any additional costs arising will be quoted separately.',
+        'Standard of work. All work is carried out with reasonable skill and care by qualified technicians. Climacore is not liable for any indirect or consequential loss, or for faults arising from misuse, power surges, load-shedding or third-party interference.',
+        "Termination. Either party may terminate this agreement by giving 30 days' written notice. Either party may terminate immediately by written notice if the other commits a material breach and fails to remedy it within 14 days of written notice to do so. Services completed up to the date of termination remain payable.",
+        'General. This agreement is the entire agreement between the parties for the services described. Any change must be in writing and signed by both parties. This agreement is governed by the laws of South Africa.',
+        'Acceptance. Acceptance of this quotation requires a signed copy of this document or an official purchase order. This quotation is valid for {valid} days from the date of issue.',
+      ].join('\n'),
+    },
+  };
+
+  C.clauses = function (q) {
+    const dep = Math.min(100, Math.max(0, num(q.deposit)));
+    const rep = (s) =>
+      s
+        .replace(/\{deposit\}/g, String(dep))
+        .replace(/\{balance\}/g, String(round2(100 - dep)))
+        .replace(/\{valid\}/g, String(Math.round(num(q.validDays)) || 30))
+        .replace(/\{vat\}/g, String(num(q.vatRate)));
+    return String(q.terms || '')
+      .split(/\r?\n/)
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const text = rep(line);
+        const m = /^(.+?\.)\s+(\S.*)$/.exec(text);
+        if (m && m[1].replace(/\.$/, '').split(/\s+/).length <= 4) return { title: m[1], body: m[2] };
+        return { title: '', body: text };
+      });
+  };
+
+  C.clientLines = function (q) {
+    const c = q.client || {};
+    const out = [];
+    if (c.attention) out.push('Attention: ' + c.attention);
+    String(c.address || '').split(/\r?\n/).map((s) => s.trim()).filter(Boolean).forEach((s) => out.push(s));
+    if (c.phone) out.push('Tel: ' + c.phone);
+    if (c.email) out.push(c.email);
+    return out;
+  };
+
+  C.fileName = function (q) {
+    const slug = String((q.client && q.client.name) || 'Client').replace(/[^A-Za-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'Client';
+    return (q.type === 'invoice' ? 'Invoice_' : 'Quote_') + String(q.number || 'draft').replace(/[^A-Za-z0-9-]+/g, '_') + '_' + slug + '.docx';
+  };
+
+  C.toText = function (q) {
+    const calc = C.calc(q);
+    const L = [];
+    L.push(C.docTitle(q) + ' ' + (q.number || ''));
+    L.push('Date: ' + C.fmtDate(q.date) + '   Valid until: ' + C.fmtDate(C.validUntil(q)));
+    L.push('To: ' + ((q.client && q.client.name) || ''));
+    C.clientLines(q).forEach((s) => L.push(s));
+    L.push('');
+    if (q.scope) { L.push(q.scope); L.push(''); }
+    C.quoteRows(q, calc).forEach((r) => L.push(r.desc + ': ' + C.fmt(r.total)));
+    L.push('');
+    L.push('Subtotal (excl. VAT): ' + C.fmt(calc.subtotal));
+    if (q.vatOn) { L.push('VAT (' + calc.vatRate + '%): ' + C.fmt(calc.vat)); L.push('TOTAL (incl. VAT): ' + C.fmt(calc.total)); }
+    return L.join('\n');
+  };
+
+  /* ---------- Word (.docx) ---------- */
+  const BLACK = '111111', ROYAL = '4169E1', ROYAL_TXT = '2F4FC4', GREY = '777777', TINT = 'EAF0FD';
+  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  function r(t, o) {
+    o = o || {};
+    const parts = String(t).split('\t');
+    const rp = (o.b ? '<w:b/>' : '') + (o.i ? '<w:i/>' : '') + (o.color ? '<w:color w:val="' + o.color + '"/>' : '') + (o.sz ? '<w:sz w:val="' + o.sz + '"/><w:szCs w:val="' + o.sz + '"/>' : '');
+    return parts
+      .map((p, i) => (i ? '<w:r><w:tab/></w:r>' : '') + '<w:r>' + (rp ? '<w:rPr>' + rp + '</w:rPr>' : '') + '<w:t xml:space="preserve">' + esc(p) + '</w:t></w:r>')
+      .join('');
+  }
+  function pPr(o) {
+    let x = '';
+    if (o.keepNext) x += '<w:keepNext/>';
+    if (o.topRule) x += '<w:pBdr><w:top w:val="single" w:sz="4" w:space="4" w:color="999999"/></w:pBdr>';
+    if (o.tabs) x += '<w:tabs>' + o.tabs.map((t) => '<w:tab w:val="left" w:pos="' + t + '"/>').join('') + '</w:tabs>';
+    x += '<w:spacing w:before="' + (o.before || 0) + '" w:after="' + (o.after == null ? 100 : o.after) + '"/>';
+    if (o.ind) x += '<w:ind w:left="' + o.ind[0] + '" w:hanging="' + o.ind[1] + '"/>';
+    if (o.jc) x += '<w:jc w:val="' + o.jc + '"/>';
+    return '<w:pPr>' + x + '</w:pPr>';
+  }
+  const para = (runs, o) => '<w:p>' + pPr(o || {}) + (runs || '') + '</w:p>';
+  const text = (t, o) => para(r(t, o), o);
+
+  function borders(kind, bottomColor) {
+    const none = (n) => '<w:' + n + ' w:val="nil"/>';
+    if (kind === 'box') {
+      const b = (n) => '<w:' + n + ' w:val="single" w:sz="4" w:space="0" w:color="BBBBBB"/>';
+      return '<w:tcBorders>' + b('top') + b('left') + b('bottom') + b('right') + '</w:tcBorders>';
+    }
+    if (kind === 'rule') {
+      return '<w:tcBorders>' + none('top') + none('left') + '<w:bottom w:val="single" w:sz="18" w:space="0" w:color="' + bottomColor + '"/>' + none('right') + '</w:tcBorders>';
+    }
+    return '<w:tcBorders>' + none('top') + none('left') + none('bottom') + none('right') + '</w:tcBorders>';
+  }
+  function tc(content, w, o) {
+    o = o || {};
+    return (
+      '<w:tc><w:tcPr><w:tcW w:w="' + w + '" w:type="dxa"/>' +
+      (o.span ? '<w:gridSpan w:val="' + o.span + '"/>' : '') +
+      borders(o.border || 'box', o.color) +
+      (o.fill ? '<w:shd w:val="clear" w:color="auto" w:fill="' + o.fill + '"/>' : '') +
+      (o.vAlign ? '<w:vAlign w:val="' + o.vAlign + '"/>' : '') +
+      '</w:tcPr>' + content + '</w:tc>'
+    );
+  }
+  function tbl(widths, rows, o) {
+    o = o || {};
+    const total = widths.reduce((a, b) => a + b, 0);
+    const mar = o.leftMar == null ? 100 : o.leftMar;
+    return (
+      '<w:tbl><w:tblPr><w:tblW w:w="' + total + '" w:type="dxa"/><w:tblLayout w:type="fixed"/>' +
+      '<w:tblCellMar><w:top w:w="60" w:type="dxa"/><w:left w:w="' + mar + '" w:type="dxa"/><w:bottom w:w="60" w:type="dxa"/><w:right w:w="100" w:type="dxa"/></w:tblCellMar></w:tblPr>' +
+      '<w:tblGrid>' + widths.map((w) => '<w:gridCol w:w="' + w + '"/>').join('') + '</w:tblGrid>' +
+      rows.map((row) => '<w:tr>' + (row.cantSplit ? '<w:trPr><w:cantSplit/></w:trPr>' : '') + row.cells.join('') + '</w:tr>').join('') +
+      '</w:tbl>'
+    );
+  }
+
+  const NS = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"';
+  const XMLH = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+
+  function logoRun() {
+    const cx = 1047750, cy = 647700;
+    return (
+      '<w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="' + cx + '" cy="' + cy + '"/>' +
+      '<wp:docPr id="1" name="Climacore logo" descr="Climacore logo"/>' +
+      '<a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic>' +
+      '<pic:nvPicPr><pic:cNvPr id="0" name="logo.png"/><pic:cNvPicPr/></pic:nvPicPr>' +
+      '<pic:blipFill><a:blip r:embed="rId1"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>' +
+      '<pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="' + cx + '" cy="' + cy + '"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr>' +
+      '</pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r>'
+    );
+  }
+
+  function headerXml() {
+    const head = tbl(
+      [4000, 5360],
+      [{ cells: [
+        tc(para(logoRun(), { after: 0 }), 4000, { border: 'none' }),
+        tc(
+          text('71 Industria Ring Road, Parow Industria, Cape Town, 7493', { sz: 16, color: GREY, jc: 'right', after: 0 }) +
+          text('071 608 1632  |  info@climacore.co.za  |  www.climacore.co.za', { sz: 16, color: GREY, jc: 'right', after: 0 }),
+          5360, { border: 'none', vAlign: 'center' }),
+      ] }],
+      { leftMar: 0 }
+    );
+    const rule = tbl(
+      [4680, 4680],
+      [{ cells: [
+        tc(para('', { after: 0 }), 4680, { border: 'rule', color: BLACK }),
+        tc(para('', { after: 0 }), 4680, { border: 'rule', color: ROYAL }),
+      ] }],
+      { leftMar: 0 }
+    );
+    return XMLH + '<w:hdr ' + NS + '>' + head + rule + para('', { after: 0 }) + '</w:hdr>';
+  }
+  function footerXml() {
+    return (
+      XMLH + '<w:ftr ' + NS + '>' +
+      text('071 608 1632  |  info@climacore.co.za  |  www.climacore.co.za', { sz: 16, color: GREY, jc: 'center', topRule: true, after: 0 }) +
+      para(r('Proudly part of the Hydrocore Group of Companies', { sz: 16, b: true, i: true, color: '555555' }), { jc: 'center', after: 0 }) +
+      '</w:ftr>'
+    );
+  }
+  const stylesXml = () =>
+    XMLH + '<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:eastAsia="Calibri" w:cs="Calibri"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:lang w:val="en-ZA"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="0" w:line="259" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style></w:styles>';
+
+  const heading = (t) => text(t, { b: true, sz: 24, color: ROYAL_TXT, before: 220, after: 80, keepNext: true });
+
+  function documentXml(q) {
+    const calc = C.calc(q);
+    const rows = C.quoteRows(q, calc);
+    const body = [];
+    body.push(text(C.fmtDate(q.date), { jc: 'right', after: 200 }));
+
+    const c = q.client || {};
+    body.push(text(c.name || 'Client name', { b: true, sz: 28, after: 20 }));
+    C.clientLines(q).forEach((s) => body.push(text(s, { after: 20 })));
+
+    body.push(text('QUOTATION', { b: true, sz: 36, color: ROYAL_TXT, before: 260, after: 120 }));
+    const info = C.infoRows(q);
+    body.push(tbl([1800, 7560], info.map((x) => ({ cells: [tc(text(x[0], { b: true, after: 0 }), 1800, { border: 'none' }), tc(text(x[1], { after: 0 }), 7560, { border: 'none' })] })), { leftMar: 0 }));
+
+    if (q.scope && q.scope.trim()) {
+      body.push(heading('Scope of Work'));
+      q.scope.split(/\r?\n/).filter((s) => s.trim()).forEach((s) => body.push(text(s.trim(), { after: 80 })));
+    }
+
+    body.push(heading('Pricing'));
+    const W = [600, 4660, 700, 1700, 1700];
+    const hc = (t, w, right) => tc(text(t, { b: true, color: 'FFFFFF', jc: right ? 'right' : undefined, after: 0 }), w, { fill: BLACK });
+    const trs = [{ cells: [hc('No.', W[0]), hc('Description', W[1]), hc('Qty', W[2], 1), hc('Unit price (excl. VAT)', W[3], 1), hc('Total (excl. VAT)', W[4], 1)] }];
+    const qtyTxt = (n) => (Math.abs(n - Math.round(n)) < 1e-9 ? String(Math.round(n)) : String(round2(n)));
+    rows.forEach((row, i) => {
+      trs.push({ cantSplit: true, cells: [
+        tc(text(String(i + 1), { after: 0 }), W[0]),
+        tc(text(row.desc, { after: 0 }), W[1]),
+        tc(text(qtyTxt(row.qty), { jc: 'right', after: 0 }), W[2]),
+        tc(text(C.fmt(row.unit), { jc: 'right', after: 0 }), W[3]),
+        tc(text(C.fmt(row.total), { jc: 'right', after: 0 }), W[4]),
+      ] });
+    });
+    body.push(tbl(W, trs));
+    body.push(para('', { after: 60 }));
+
+    const tr = (label, val, bold) =>
+      ({ cells: [tc(text(label, { jc: 'right', b: bold, after: 0 }), 7660, { fill: bold ? TINT : undefined }), tc(text(val, { jc: 'right', b: bold, after: 0 }), 1700, { fill: bold ? TINT : undefined })] });
+    const trows = q.vatOn
+      ? [tr('Subtotal (excl. VAT)', C.fmt(calc.subtotal)), tr('VAT (' + calc.vatRate + '%)', C.fmt(calc.vat)), tr('TOTAL (incl. VAT)', C.fmt(calc.total), true)]
+      : [tr('TOTAL', C.fmt(calc.total), true)];
+    body.push(tbl([7660, 1700], trows));
+
+    const cl = C.clauses(q);
+    if (cl.length) {
+      body.push(heading('Terms and Conditions'));
+      cl.forEach((k, i) => {
+        body.push(para(r(i + 1 + '.\t', { sz: 20 }) + (k.title ? r(k.title + ' ', { sz: 20, b: true }) : '') + r(k.body, { sz: 20 }), { tabs: [400], ind: [400, 400], after: 90 }));
+      });
+    }
+
+    if (q.showAcceptance) {
+      body.push(heading('Acceptance'));
+      body.push(text('By signing below, the Client accepts this quotation and its terms and conditions.', { after: 140, keepNext: true }));
+      const sig = (who, name) =>
+        tc(
+          text(who, { b: true, after: 20 }) + text(name, { after: 140 }) +
+          text('Name: ____________________________', { after: 140 }) +
+          text('Signature: ________________________', { after: 140 }) +
+          text('Date: ____________________________', { after: 0 }),
+          4680, { border: 'none' }
+        );
+      body.push(tbl([4680, 4680], [{ cantSplit: true, cells: [sig('For the Service Provider', 'Climacore'), sig('For the Client', c.name || '')] }], { leftMar: 0 }));
+    }
+    body.push(text('Team Climacore', { before: 240, after: 0 }));
+
+    const sect =
+      '<w:sectPr><w:headerReference w:type="default" r:id="rId2"/><w:footerReference w:type="default" r:id="rId3"/>' +
+      '<w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="2000" w:right="1273" w:bottom="1400" w:left="1273" w:header="500" w:footer="500" w:gutter="0"/></w:sectPr>';
+    return XMLH + '<w:document ' + NS + '><w:body>' + body.join('') + sect + '</w:body></w:document>';
+  }
+
+  /* minimal zip writer (stored, no compression) */
+  const CRC = (function () {
+    const t = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; }
+    return (u8) => { let c = 0xffffffff; for (let i = 0; i < u8.length; i++) c = t[(c ^ u8[i]) & 0xff] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; };
+  })();
+  function zip(files) {
+    const enc = new TextEncoder();
+    const parts = [], central = [];
+    let offset = 0;
+    files.forEach((f) => {
+      const name = enc.encode(f.name);
+      const data = f.data;
+      const crc = CRC(data);
+      const lh = new DataView(new ArrayBuffer(30));
+      lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, 0, true);
+      lh.setUint16(10, 0, true); lh.setUint16(12, 0x5821, true); lh.setUint32(14, crc, true);
+      lh.setUint32(18, data.length, true); lh.setUint32(22, data.length, true); lh.setUint16(26, name.length, true); lh.setUint16(28, 0, true);
+      parts.push(new Uint8Array(lh.buffer), name, data);
+      const ch = new DataView(new ArrayBuffer(46));
+      ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint16(10, 0, true);
+      ch.setUint16(12, 0, true); ch.setUint16(14, 0x5821, true); ch.setUint32(16, crc, true);
+      ch.setUint32(20, data.length, true); ch.setUint32(24, data.length, true); ch.setUint16(28, name.length, true);
+      ch.setUint16(30, 0, true); ch.setUint16(32, 0, true); ch.setUint16(34, 0, true); ch.setUint16(36, 0, true); ch.setUint32(38, 0, true); ch.setUint32(42, offset, true);
+      central.push(new Uint8Array(ch.buffer), name);
+      offset += 30 + name.length + data.length;
+    });
+    const cdSize = central.reduce((n, p) => n + p.length, 0);
+    const end = new DataView(new ArrayBuffer(22));
+    end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true);
+    end.setUint32(12, cdSize, true); end.setUint32(16, offset, true);
+    const all = parts.concat(central, [new Uint8Array(end.buffer)]);
+    const out = new Uint8Array(all.reduce((n, p) => n + p.length, 0));
+    let o = 0;
+    all.forEach((p) => { out.set(p, o); o += p.length; });
+    return out;
+  }
+
+  C.buildDocx = function (q, logoBytes) {
+    const enc = new TextEncoder();
+    const x = (s) => enc.encode(s);
+    const REL = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+    return zip([
+      { name: '[Content_Types].xml', data: x(XMLH + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/word/header1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"/><Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/></Types>') },
+      { name: '_rels/.rels', data: x(XMLH + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="' + REL + '/officeDocument" Target="word/document.xml"/></Relationships>') },
+      { name: 'word/document.xml', data: x(documentXml(q)) },
+      { name: 'word/_rels/document.xml.rels', data: x(XMLH + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="' + REL + '/styles" Target="styles.xml"/><Relationship Id="rId2" Type="' + REL + '/header" Target="header1.xml"/><Relationship Id="rId3" Type="' + REL + '/footer" Target="footer1.xml"/></Relationships>') },
+      { name: 'word/styles.xml', data: x(stylesXml()) },
+      { name: 'word/header1.xml', data: x(headerXml()) },
+      { name: 'word/_rels/header1.xml.rels', data: x(XMLH + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="' + REL + '/image" Target="media/logo.png"/></Relationships>') },
+      { name: 'word/footer1.xml', data: x(footerXml()) },
+      { name: 'word/media/logo.png', data: logoBytes },
+    ]);
+  };
+
+
+  /* ---------- version 2.0: invoices and supplier quote reading ---------- */
+  C.docTitle = (q) => (q.type === 'invoice' ? (q.vatOn ? 'TAX INVOICE' : 'INVOICE') : 'QUOTATION');
+  C.dueText = function (q) {
+    const n = Math.round(num(q.dueDays));
+    return n > 0 ? C.fmtDate(C.addDays(q.date, n)) : 'On receipt';
+  };
+  C.infoRows = function (q) {
+    if (q.type === 'invoice') {
+      return [['Invoice no.', q.number], ['Date', C.fmtDate(q.date)], ['Due date', C.dueText(q)], ['Quote ref.', q.fromNumber], ['Reference', q.reference], ['VAT no.', q.vatNo], ['Status', q.paid ? 'Paid' : '']].filter((x) => x[1]);
+    }
+    return [['Quote no.', q.number], ['Date', C.fmtDate(q.date)], ['Valid until', C.fmtDate(C.validUntil(q))], ['Reference', q.reference]].filter((x) => x[1]);
+  };
+
+  /* Group the text pieces of a PDF into table rows, and the pieces of a row into cells.
+     items: { s, x, y, w, h } with y growing downwards. */
+  C.rowsFromItems = function (items) {
+    const list = items.filter((i) => i.s && i.s.trim()).sort((a, b) => a.y - b.y || a.x - b.x);
+    const rows = [];
+    list.forEach((it) => {
+      const last = rows[rows.length - 1];
+      if (last && Math.abs(last.y - it.y) <= 3) last.items.push(it);
+      else rows.push({ y: it.y, items: [it] });
+    });
+    return rows.map((r) => {
+      r.items.sort((a, b) => a.x - b.x);
+      const cells = [];
+      r.items.forEach((it) => {
+        const c = cells[cells.length - 1];
+        const gap = c ? it.x - c.end : 0;
+        const lim = Math.max(5, (it.h || 10) * 0.8);
+        const t = it.s.trim();
+        if (c && gap < lim) { c.s += (gap > 1.2 ? ' ' : '') + t; c.end = it.x + (it.w || 0); }
+        else cells.push({ s: t, x: it.x, end: it.x + (it.w || 0) });
+      });
+      return { y: r.y, cells };
+    });
+  };
+
+  const MONEY = /^R?\s*-?\d{1,3}(?:[ , ]\d{3})*[.,]\d{2}$|^R?\s*-?\d+[.,]\d{2}$/i;
+  const PLAIN = /^\d+(?:[.,]\d+)?$/;
+  const UNITW = /^(each|ea\.?|no\.?|nr\.?|m|mm|set|sets|pcs|pc|unit|units|lot|item|items|kg|l|hr|hrs|hour|hours|day|days|lm)$/i;
+  const TOTALROW = /^(sub\s*-?\s*total|total|vat|v\.a\.t|tax|balance|amount due|grand total)/i;
+  const near = (a, b) => Math.abs(a - b) <= 1.01;
+
+  C.parseSupplier = function (rows) {
+    const lines = [], totals = {};
+    const alltext = [];
+    let prev = null;
+    rows.forEach((row) => {
+      const cells = row.cells;
+      alltext.push(cells.map((c) => c.s).join(' '));
+      const money = [], plain = [], words = [];
+      cells.forEach((c) => {
+        if (MONEY.test(c.s)) money.push(c);
+        else if (PLAIN.test(c.s)) plain.push(c);
+        else words.push(c);
+      });
+      const label = words.map((w) => w.s).join(' ').replace(/^[^A-Za-z]+/, '');
+      if (TOTALROW.test(label)) {
+        if (money.length) {
+          const v = num(money[money.length - 1].s);
+          if (/^sub/i.test(label)) totals.sub = v;
+          else if (/^(vat|v\.a\.t|tax)/i.test(label)) totals.vat = v;
+          else if (/excl/i.test(label) && totals.sub == null) totals.sub = v;
+          else if (/total/i.test(label)) totals.total = v;
+        }
+        prev = null;
+        return;
+      }
+      const descCells = words.filter((w) => /[A-Za-z]/.test(w.s) && !UNITW.test(w.s));
+      let desc = descCells.map((w) => w.s).join(' ').trim();
+      if (money.length && desc.length >= 3) {
+        let m = money.map((c) => num(c.s));
+        let qty = 1;
+        let glued = null;
+        if (m.length >= 2) {
+          const gm = /^(.*\S)\s+(\d+(?:[.,]\d+)?)$/.exec(desc);
+          if (gm && num(gm[2]) > 0 && near(round2(num(gm[2]) * m[0]), m[m.length - 1])) glued = gm;
+        }
+        if (glued) { qty = num(glued[2]); desc = glued[1]; }
+        else if (m.length >= 3 && !/R/i.test(money[0].s) && m[0] <= 9999) { qty = m.shift(); }
+        else if (plain.length) qty = num(plain[plain.length - 1].s) || 1;
+        let unit, total;
+        if (m.length >= 2) {
+          unit = m[0]; total = m[m.length - 1];
+          if (!near(round2(qty * unit), total)) {
+            const q2 = unit > 0 ? total / unit : 1;
+            if (Math.abs(q2 - Math.round(q2)) < 0.01 && Math.round(q2) >= 1) qty = Math.round(q2);
+            else { qty = 1; unit = total; }
+          }
+        } else {
+          total = m[0];
+          unit = qty > 0 ? round2(total / qty) : total;
+        }
+        const line = { desc, qty, unit: round2(unit), total: round2(total), on: true };
+        lines.push(line);
+        prev = { line, x: descCells[0].x, y: row.y };
+        return;
+      }
+      if (prev && !money.length && !plain.length && words.length === 1 && row.y - prev.y < 18 && Math.abs(words[0].x - prev.x) < 10 && !TOTALROW.test(label)) {
+        prev.line.desc += ' ' + words[0].s;
+        prev.y = row.y;
+        return;
+      }
+      prev = null;
+    });
+    const text = alltext.join('\n');
+    const rm = /(?:quote|quotation|pro\s?-?forma|estimate)\s*(?:no\.?|number|nr\.?|#)?\s*[:\-]?\s*((?=[A-Z0-9\-\/]*\d)[A-Z0-9][A-Z0-9\-\/]{2,})/i.exec(text);
+    const sum = round2(lines.reduce((t, l) => t + l.total, 0));
+    let incl = false;
+    if (totals.sub != null && near(sum, totals.sub)) incl = false;
+    else if (totals.total != null && near(sum, totals.total) && (totals.vat == null || totals.vat > 0)) incl = true;
+    return { lines, totals, ref: rm ? rm[1] : '', sum, incl };
+  };
+
+  root.QCore = C;
+  if (typeof module !== 'undefined' && module.exports) module.exports = C;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* Climacore Quote Builder: interface, saving and download. */
+(function () {
+  'use strict';
+  const C = window.QCore;
+  const LOGO_B64 = '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';
+  const LOGO_SRC = 'data:image/png;base64,' + LOGO_B64;
+  const $ = (s, r) => (r || document).querySelector(s);
+  const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+  const h = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+
+  const DEFAULTS = { vatNo: '', banking: '', dueDays: '7', markup: '40', uplift: '0', vatRate: '15', deposit: '70', validDays: '30', labourRate: '695', hoursPerDay: '8', travelRate: '7.5', preset: 'supply', terms: '' };
+  let settings = Object.assign({}, DEFAULTS, { terms: C.PRESETS.supply.text });
+  let quotes = [];
+  let memory = { clients: {}, items: {}, seeded: false };
+  let savedFilter = 'all';
+  let imp = null;
+  let q = null;
+  let dirty = false;
+  let savedOnce = false;
+  let downloads = null;
+  let autosaveTimer = null;
+  let toastTimer = null;
+
+  /* ---------- storage: the ClimaCore Lead Log database (Supabase) ---------- */
+  const SB_URL = 'https://gjrmxwwujudgxkqkpyby.supabase.co';
+  const SB_KEY = 'sb_publishable_EyqmNpJcErSFmE2BO9znAA_UFNmOlxX';
+  const SESSION_KEY = 'cq:sb-session';
+  let leads = [];
+  const Store = {
+    mode: 'cloud',
+    session: null,
+    lsGet(k, fb) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : fb; } catch (e) { return fb; } },
+    lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* storage unavailable */ } },
+    lsDel(k) { try { localStorage.removeItem(k); } catch (e) { /* storage unavailable */ } },
+    loadLocal() { /* quotes live in the lead log database now; see connect() */ },
+    async auth(body, grant) {
+      const r = await fetch(SB_URL + '/auth/v1/token?grant_type=' + grant, { method: 'POST', headers: { apikey: SB_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) { const e = new Error(j.error_description || j.msg || 'Sign-in failed'); e.status = r.status; throw e; }
+      this.session = { access: j.access_token, refresh: j.refresh_token, exp: Date.now() + (j.expires_in || 3600) * 1000, email: (j.user && j.user.email) || body.email || '' };
+      this.lsSet(SESSION_KEY, this.session);
+      return this.session;
+    },
+    signIn(email, password) { return this.auth({ email, password }, 'password'); },
+    async refresh() {
+      if (!this.session || !this.session.refresh) throw new Error('signed out');
+      const email = this.session.email;
+      await this.auth({ refresh_token: this.session.refresh }, 'refresh_token');
+      if (!this.session.email) this.session.email = email;
+    },
+    signOut() {
+      const s0 = this.session; this.session = null; this.lsDel(SESSION_KEY);
+      if (s0) fetch(SB_URL + '/auth/v1/logout', { method: 'POST', headers: { apikey: SB_KEY, Authorization: 'Bearer ' + s0.access } }).catch(() => {});
+    },
+    async api(path, opts, retried) {
+      opts = opts || {};
+      if (!this.session) throw new Error('signed out');
+      if (this.session.exp - Date.now() < 60000) { try { await this.refresh(); } catch (e) { needSignIn(); throw e; } }
+      const headers = Object.assign({ apikey: SB_KEY, Authorization: 'Bearer ' + this.session.access, 'Content-Type': 'application/json' }, opts.headers || {});
+      const r = await fetch(SB_URL + '/rest/v1/' + path, { method: opts.method || 'GET', headers, body: opts.body ? JSON.stringify(opts.body) : undefined });
+      if (r.status === 401 && !retried) { try { await this.refresh(); } catch (e) { needSignIn(); throw e; } return this.api(path, opts, true); }
+      if (!r.ok) { const t = await r.text(); const e = new Error(t || ('HTTP ' + r.status)); e.status = r.status; throw e; }
+      if (r.status === 204) return null;
+      const txt = await r.text();
+      return txt ? JSON.parse(txt) : null;
+    },
+    row(x) {
+      const calc = C.calc(x);
+      const iso = /^\d{4}-\d{2}-\d{2}$/.test(x.date || '') ? x.date : null;
+      return {
+        id: x.id, lead_id: x.leadId || null, type: x.type === 'invoice' ? 'invoice' : 'quote', number: x.number || null,
+        client_name: (x.client && x.client.name) || null, doc_date: iso, total: C.round2(calc.total), subtotal: C.round2(calc.subtotal),
+        status: x.status || 'draft', paid: !!x.paid, from_number: x.fromNumber || null, inv_kind: x.invKind || null, json: x,
+      };
+    },
+    async saveQuote(x) {
+      await this.api('quote_docs?on_conflict=id', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: [this.row(x)] });
+      const i = quotes.findIndex((z) => z.id === x.id);
+      const copy = JSON.parse(JSON.stringify(x));
+      if (i >= 0) quotes[i] = copy; else quotes.push(copy);
+      quotes.sort((a, b) => (b.updated || 0) - (a.updated || 0));
+      renderSaved();
+      if (x.leadId) refreshLeads();
+    },
+    async deleteQuote(id) {
+      await this.api('quote_docs?id=eq.' + encodeURIComponent(id), { method: 'DELETE' });
+      quotes = quotes.filter((z) => z.id !== id); renderSaved(); refreshLeads();
+    },
+    async saveMeta(key, value) {
+      await this.api('quote_meta?on_conflict=key', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: [{ key, value, updated_at: new Date().toISOString() }] });
+    },
+    saveSettings() { return this.saveMeta('settings', settings); },
+    saveMemory() { return this.saveMeta('memory', memory); },
+    async loadAll() {
+      const [docs, meta] = await Promise.all([
+        this.api('quote_docs?select=json,lead_id&order=updated_at.desc'),
+        this.api('quote_meta?select=key,value'),
+      ]);
+      (meta || []).forEach((m) => {
+        if (m.key === 'settings' && m.value) settings = Object.assign(settings, m.value);
+        if (m.key === 'memory' && m.value) memory = Object.assign({ clients: {}, items: {}, seeded: false }, m.value);
+      });
+      quotes = (docs || []).map((d) => { const z = d.json || {}; z.leadId = d.lead_id || ''; return z; }).filter((z) => z && z.id);
+      quotes.sort((a, b) => (b.updated || 0) - (a.updated || 0));
+      await refreshLeads();
+      renderSaved();
+      afterLoad();
+    },
+    async connect() {
+      this.session = this.lsGet(SESSION_KEY, null);
+      if (!this.session) { needSignIn(); return; }
+      try { await this.loadAll(); signedIn(); }
+      catch (e) { if (e.status === 401 || e.message === 'signed out') needSignIn(); else { $('#storeNote').textContent = 'Could not reach the lead log. Check your internet connection.'; } }
+    },
+  };
+
+  /* ---------- sign in ---------- */
+  function needSignIn() {
+    Store.session = null; Store.lsDel(SESSION_KEY);
+    $('#signinBack').hidden = false; $('#btnSignOut').hidden = true;
+    $('#storeNote').textContent = 'Not signed in.';
+    setTimeout(() => $('#si-email').focus(), 50);
+  }
+  function signedIn() {
+    $('#signinBack').hidden = true; $('#btnSignOut').hidden = false;
+    $('#storeNote').textContent = 'Signed in as ' + (Store.session.email || 'team member') + '. Saves to the ClimaCore Lead Log.';
+    offerLocalUpload();
+  }
+  function offerLocalUpload() {
+    const local = Store.lsGet('cq:quotes', []);
+    if (!Array.isArray(local) || !local.length || Store.lsGet('cq:uploaded', false)) return;
+    const fresh = local.filter((z) => z && z.id && !quotes.some((x) => x.id === z.id));
+    if (!fresh.length) return;
+    const b = $('#uploadBanner');
+    $('#uploadText').innerHTML = '<b>' + fresh.length + ' quotes are saved on this computer only.</b> Upload them so they are in the lead log too.';
+    b.hidden = false;
+    $('#btnUpload').onclick = async () => {
+      let n = 0;
+      for (const z of fresh) { if (!z.type) z.type = 'quote'; try { await Store.saveQuote(z); n++; } catch (e) { /* skip */ } }
+      Store.lsSet('cq:uploaded', true);
+      b.hidden = true;
+      toast('Uploaded ' + n + ' quotes. Open each one to link it to its lead.');
+    };
+  }
+
+  /* ---------- leads ---------- */
+  function digits(v) { return String(v || '').replace(/\D/g, '').replace(/^27/, '0'); }
+  async function refreshLeads() {
+    try {
+      leads = (await Store.api('leads?select=id,name,phone,email,suburb,status,quoted,invoiced,paid,date&order=date.desc,id.desc&limit=1000')) || [];
+    } catch (e) { return; }
+    $('#dlLeads').innerHTML = leads.map((l) => '<option value="' + h(leadLabel(l)) + '"></option>').join('');
+    if (q) renderLead();
+  }
+  function leadLabel(l) { return l.id + ' · ' + (l.name || 'No name') + (l.suburb ? ' · ' + l.suburb : '') + (l.phone ? ' · ' + l.phone : ''); }
+  function leadById(id) { return leads.find((l) => l.id === id); }
+  function suggestLead() {
+    if (!q || q.leadId) return null;
+    const n = String((q.client && q.client.name) || '').trim().toLowerCase();
+    const p = digits(q.client && q.client.phone);
+    const e = String((q.client && q.client.email) || '').trim().toLowerCase();
+    if (!n && !p && !e) return null;
+    return leads.find((l) => (p.length >= 9 && digits(l.phone) === p) || (e && String(l.email || '').toLowerCase() === e)) ||
+      (n.length >= 3 ? leads.find((l) => String(l.name || '').trim().toLowerCase() === n) : null) || null;
+  }
+  function renderLead() {
+    const l = q.leadId ? leadById(q.leadId) : null;
+    const info = $('#leadInfo'), inp = $('#f-lead');
+    if (document.activeElement !== inp) inp.value = l ? leadLabel(l) : (q.leadId || '');
+    $('#btnLeadClear').hidden = !q.leadId;
+    $('#btnLeadNew').hidden = !!q.leadId;
+    if (q.leadId) {
+      info.innerHTML = l
+        ? 'Linked to lead <b>' + h(l.id) + '</b> (' + h(l.status || '') + '). When you save, the lead log gets this ' + (q.type === 'invoice' ? 'invoice' : 'price') + '.' +
+          (l.quoted != null ? ' Lead log shows: quoted ' + C.fmt(+l.quoted) + ', invoiced ' + h(l.invoiced || 'No') + ', paid ' + h(l.paid || 'No') + '.' : '')
+        : 'Linked to lead <b>' + h(q.leadId) + '</b>.';
+    } else {
+      info.textContent = 'Not linked to a lead yet. Pick the lead so the price and invoice show in the lead log.';
+    }
+    const sug = suggestLead(), sb = $('#btnLeadSuggest');
+    sb.hidden = !sug;
+    if (sug) { sb.textContent = 'Link to ' + sug.id + ' · ' + (sug.name || ''); sb.dataset.id = sug.id; }
+  }
+  function linkLead(id) {
+    const l = leadById(id);
+    if (!l) return;
+    q.leadId = l.id;
+    const c = q.client;
+    if (!String(c.name || '').trim() && l.name) c.name = l.name;
+    if (!String(c.phone || '').trim() && l.phone) c.phone = l.phone;
+    if (!String(c.email || '').trim() && l.email) c.email = l.email;
+    if (!String(c.address || '').trim() && l.suburb) c.address = l.suburb;
+    fillStatic(); touch(); renderLead();
+    toast('Linked to lead ' + l.id + (savedOnce ? '' : '. Save to send it to the lead log.'));
+  }
+  async function newLeadFromClient() {
+    const c = q.client || {};
+    if (!String(c.name || '').trim()) { toast('Type the client name first.'); $('#f-client-name').focus(); return; }
+    try {
+      const rows = await Store.api('leads?select=id', { method: 'POST', headers: { Prefer: 'return=representation' }, body: [{
+        name: c.name.trim(), phone: c.phone || null, email: c.email || null, suburb: (c.address || '').split('\n')[0] || null,
+        source: 'Quote Builder', need: q.scope || q.singleDesc || null, status: 'New', added_by: Store.session && Store.session.email,
+      }] });
+      const id = rows && rows[0] && rows[0].id;
+      await refreshLeads();
+      if (id) { q.leadId = id; touch(); renderLead(); toast('Added lead ' + id + ' to the lead log'); }
+    } catch (e) { toast('Could not add the lead. Try again in a moment.'); }
+  }
+
+  /* ---------- helpers ---------- */
+  function getPath(o, p) { return p.split('.').reduce((a, k) => (a == null ? a : a[k]), o); }
+  function setPath(o, p, v) { const ks = p.split('.'); const last = ks.pop(); const t = ks.reduce((a, k) => a[k], o); t[last] = v; }
+  function todayISO() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function nextNumber(type) {
+    const d = new Date();
+    const prefix = (type === 'invoice' ? 'INV-' : 'CC-') + String(d.getFullYear()).slice(2) + String(d.getMonth() + 1).padStart(2, '0') + '-';
+    let max = 0;
+    quotes.forEach((z) => { if (z.number && z.number.indexOf(prefix) === 0) max = Math.max(max, parseInt(z.number.slice(prefix.length), 10) || 0); });
+    return prefix + String(max + 1).padStart(3, '0');
+  }
+  function toast(msg) {
+    const t = $('#toast');
+    t.textContent = msg; t.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.hidden = true; }, 3200);
+  }
+  function newQuote(example) {
+    const lines = example
+      ? [
+          Object.assign(C.newLine('material', settings), { desc: 'Equipment (example)', a: '1', b: '50000' }),
+          Object.assign(C.newLine('labour', settings), { desc: 'Labour', a: '2' }),
+          Object.assign(C.newLine('fixed', settings), { desc: 'Consumables', a: '5000' }),
+        ]
+      : [C.newLine('material', settings)];
+    return {
+      id: 'q' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), type: 'quote',
+      number: nextNumber(), date: todayISO(), validDays: settings.validDays, reference: '',
+      client: { name: '', attention: '', address: '', phone: '', email: '' },
+      scope: '', mode: 'single', singleDesc: 'Supply and installation of equipment, including all materials, consumables and labour',
+      markup: settings.markup, uplift: settings.uplift, vatOn: true, vatRate: settings.vatRate, deposit: settings.deposit,
+      preset: settings.preset || 'supply', terms: settings.terms || C.PRESETS.supply.text, showAcceptance: true,
+      lines, example: !!example, updated: 0, leadId: '',
+    };
+  }
+
+  /* ---------- lines ---------- */
+  function field(l, k, label, opts) {
+    opts = opts || {};
+    const id = l.id + '-' + k;
+    const mode = opts.mode ? ' inputmode="' + opts.mode + '"' : '';
+    return '<label class="f' + (opts.wide ? ' wide' : '') + '" for="' + id + '"><span>' + label + '</span><input type="text" id="' + id + '" data-k="' + k + '"' + mode + (opts.list ? ' list="' + opts.list + '"' : '') + ' value="' + h(l[k]) + '" autocomplete="off"></label>';
+  }
+  function lineRow(l) {
+    let fields = '';
+    if (l.kind === 'material') fields = field(l, 'desc', 'Description', { wide: true, list: 'dlItems' }) + field(l, 'a', 'Quantity', { mode: 'decimal' }) + field(l, 'b', 'Cost each (R)', { mode: 'decimal' });
+    else if (l.kind === 'labour') fields = field(l, 'desc', 'Description', { wide: true }) + field(l, 'a', 'Days', { mode: 'decimal' }) + field(l, 'b', 'Hours per day', { mode: 'decimal' }) + field(l, 'c', 'Rate per hour (R)', { mode: 'decimal' });
+    else if (l.kind === 'travel') fields = field(l, 'desc', 'Description', { wide: true }) + field(l, 'a', 'Distance (km)', { mode: 'decimal' }) + field(l, 'b', 'Rate per km (R)', { mode: 'decimal' });
+    else fields = field(l, 'desc', 'Description', { wide: true }) + field(l, 'a', 'Amount (R)', { mode: 'decimal' });
+    return (
+      '<div class="line" data-id="' + l.id + '">' +
+      '<div class="line-head"><span class="kind">' + C.KINDS[l.kind] + '</span><button type="button" class="linkbtn" data-act="rm" data-id="' + l.id + '">Remove</button></div>' +
+      fields +
+      '<div class="line-foot"><label class="chk" for="' + l.id + '-markup"><input type="checkbox" id="' + l.id + '-markup" data-k="markup"' + (l.markup ? ' checked' : '') + '> Add markup to this line</label>' +
+      '<div class="line-out"><span>Priced on quote at</span><b data-out="sell">R 0.00</b></div></div>' +
+      '</div>'
+    );
+  }
+  function renderLines() {
+    const box = $('#lines');
+    box.innerHTML = q.lines.length ? q.lines.map(lineRow).join('') : '<div class="empty">No costs yet. Add equipment, labour, travel or other costs below.</div>';
+  }
+
+  /* ---------- preview and totals ---------- */
+  function paperHTML(calc) {
+    const c = q.client || {};
+    const rows = C.quoteRows(q, calc);
+    const qty = (n) => (Math.abs(n - Math.round(n)) < 1e-9 ? String(Math.round(n)) : String(C.round2(n)));
+    const info = C.infoRows(q);
+    const cl = C.clauses(q);
+    const clientLines = C.clientLines(q).map((s) => h(s)).join('<br>');
+    let x = '';
+    x += '<div class="p-head"><img src="' + LOGO_SRC + '" alt="Climacore"><div class="p-addr">71 Industria Ring Road, Parow Industria, Cape Town, 7493<br>071 608 1632 &nbsp;|&nbsp; info@climacore.co.za &nbsp;|&nbsp; www.climacore.co.za</div></div>';
+    x += '<div class="p-rule"><i></i><i></i></div>';
+    x += '<div class="p-date">' + h(C.fmtDate(q.date)) + '</div>';
+    x += '<div class="p-client"><b>' + (c.name ? h(c.name) : '<span class="ph">Client name</span>') + '</b>' + (clientLines ? '<br>' + clientLines : '') + '</div>';
+    x += '<h3 class="p-title">' + C.docTitle(q) + '</h3>';
+    x += '<dl class="p-info">' + info.map((i) => '<dt>' + i[0] + '</dt><dd>' + h(i[1]) + '</dd>').join('') + '</dl>';
+    if (q.type !== 'invoice' && q.scope && q.scope.trim()) x += '<h4>Scope of Work</h4>' + q.scope.split(/\r?\n/).filter((s) => s.trim()).map((s) => '<p>' + h(s.trim()) + '</p>').join('');
+    x += '<h4>Pricing</h4><div class="p-scroll"><table><thead><tr><th>No.</th><th>Description</th><th class="r">Qty</th><th class="r">Unit price (excl. VAT)</th><th class="r">Total (excl. VAT)</th></tr></thead><tbody>';
+    x += rows.map((r, i) => '<tr><td>' + (i + 1) + '</td><td>' + h(r.desc) + '</td><td class="r">' + qty(r.qty) + '</td><td class="r">' + C.fmt(r.unit) + '</td><td class="r">' + C.fmt(r.total) + '</td></tr>').join('');
+    x += '</tbody></table></div>';
+    x += '<table class="p-tot"><tbody>';
+    if (q.vatOn) x += '<tr><td>Subtotal (excl. VAT)</td><td class="r">' + C.fmt(calc.subtotal) + '</td></tr><tr><td>VAT (' + calc.vatRate + '%)</td><td class="r">' + C.fmt(calc.vat) + '</td></tr><tr class="grand"><td>TOTAL (incl. VAT)</td><td class="r">' + C.fmt(calc.total) + '</td></tr>';
+    else x += '<tr class="grand"><td>TOTAL</td><td class="r">' + C.fmt(calc.total) + '</td></tr>';
+    x += '</tbody></table>';
+    if (q.type === 'invoice') {
+      const bl = String(q.banking || '').split(/\r?\n/).map((z) => z.trim()).filter(Boolean);
+      x += '<h4>Banking details</h4>' + (bl.length ? bl.map((z) => '<p>' + h(z) + '</p>').join('') : '<p class="ph">Add your banking details in the Invoice section.</p>');
+      x += '<p style="margin-top:8px">Please use ' + h(q.number || 'the invoice number') + ' as the payment reference. Payment is due ' + (C.dueText(q) === 'On receipt' ? 'on receipt' : 'by ' + h(C.dueText(q))) + '.</p>';
+    }
+    if (q.type !== 'invoice' && cl.length) x += '<h4>Terms and Conditions</h4><ol>' + cl.map((k) => '<li>' + (k.title ? '<b>' + h(k.title) + '</b> ' : '') + h(k.body) + '</li>').join('') + '</ol>';
+    if (q.type !== 'invoice' && q.showAcceptance) {
+      x += '<h4>Acceptance</h4><p>By signing below, the Client accepts this quotation and its terms and conditions.</p><div class="p-sig">';
+      x += '<div><b>For the Service Provider</b><br>Climacore<br>Name: ____________________<br>Signature: _________________<br>Date: ____________________</div>';
+      x += '<div><b>For the Client</b><br>' + h(c.name || '') + '<br>Name: ____________________<br>Signature: _________________<br>Date: ____________________</div></div>';
+    }
+    x += '<p style="margin-top:14px">Team Climacore</p>';
+    x += '<div class="p-foot">071 608 1632 &nbsp;|&nbsp; info@climacore.co.za &nbsp;|&nbsp; www.climacore.co.za<br><i>Proudly part of the Hydrocore Group of Companies</i></div>';
+    return x;
+  }
+  function figuresHTML(calc) {
+    if (q.type === 'invoice') {
+      return '<div class="tag"><b>Invoice</b><span>' + (q.fromNumber ? 'From quote ' + h(q.fromNumber) : 'Not linked to a quote') + '</span></div>' +
+        '<div class="fig-total"><span>' + (q.paid ? 'Paid' : (q.vatOn ? 'Client pays incl. VAT' : 'Client pays')) + '</span><b class="num">' + C.fmt(calc.total) + '</b></div>';
+    }
+    return (
+      '<div class="tag"><b>Your numbers</b><span>' + (q.supplier && q.supplier.ref ? 'Supplier quote ' + h(q.supplier.ref) + ' · ' : '') + 'Private. These are not on the quote.</span></div>' +
+      '<div class="fig-grid">' +
+      '<div class="fig"><span>Your cost</span><b>' + C.fmt(calc.cost) + '</b></div>' +
+      '<div class="fig"><span>Added by markup</span><b>' + C.fmt(calc.added) + '</b></div>' +
+      '<div class="fig"><span>Quote excl. VAT</span><b>' + C.fmt(calc.subtotal) + '</b></div></div>' +
+      '<div class="fig-total"><span>' + (q.vatOn ? 'Client pays incl. VAT' : 'Client pays') + '</span><b class="num">' + C.fmt(calc.total) + '</b></div>'
+    );
+  }
+  function syncInvoice() {
+    if (q.type !== 'invoice') return;
+    const base = q.lines && q.lines[0] && q.lines[0].kind === 'fixed' ? q.lines[0] : C.newLine('fixed', settings);
+    q.lines = [Object.assign(base, { kind: 'fixed', desc: q.singleDesc, a: q.invAmount, markup: false })];
+    q.mode = 'single'; q.uplift = '0';
+  }
+  function applyType() {
+    const inv = q.type === 'invoice';
+    $$('[data-for]').forEach((el) => { el.hidden = el.dataset.for !== (inv ? 'invoice' : 'quote'); });
+    $('#lblNumber').textContent = inv ? 'Invoice number' : 'Quote number';
+    $('#h-details').textContent = inv ? 'Invoice details' : 'Quote details';
+    $('#btnInvoice').hidden = inv;
+    if (inv) $('#invChoice').hidden = true;
+    $('#btnDocx').hidden = inv || !downloads;
+    $('#btnSave').textContent = inv ? 'Save invoice' : 'Save quote';
+    $('#invFrom').textContent = inv ? (q.fromNumber ? 'Created from quote ' + q.fromNumber + '. Check the amount, the VAT number and the banking details before you send it.' : 'Not linked to a quote. Type the amount and what it is for.') : '';
+    const dep = Math.min(100, Math.max(0, C.parseNum(q.deposit)));
+    $('#kDeposit').textContent = 'Deposit ' + dep + '%';
+    $('#kBalance').textContent = 'Balance ' + C.round2(100 - dep) + '%';
+  }
+  function updateAll() {
+    syncInvoice();
+    applyType();
+    const calc = C.calc(q);
+    $('#paper').innerHTML = paperHTML(calc);
+    $('#figures').innerHTML = figuresHTML(calc);
+    $('#miniTotal').textContent = C.fmt(calc.total);
+    calc.rows.forEach((r) => {
+      const el = $('[data-id="' + r.id + '"] [data-out="sell"]');
+      if (el) el.textContent = C.fmt(r.sell);
+    });
+    $('#example').hidden = !q.example;
+    $('#singleBox').hidden = q.mode !== 'single';
+    $('#modeHint').textContent = q.mode === 'single'
+      ? 'The client sees one line and one price. Your cost lines stay private.'
+      : 'The client sees each line at its marked-up price.';
+    $('#saveState').textContent = dirty ? 'Unsaved changes' : (savedOnce ? 'All changes saved' : '');
+  }
+  function fillStatic() {
+    $$('[data-f]').forEach((el) => {
+      const v = getPath(q, el.dataset.f);
+      if (el.type === 'checkbox') el.checked = !!v;
+      else if (el.type === 'radio') el.checked = el.value === v;
+      else el.value = v == null ? '' : v;
+    });
+  }
+  function renderAll() { if (q && q.leadId == null) q.leadId = ''; fillStatic(); renderLines(); updateAll(); renderLead(); const n = $('#doneNote'); if (n) n.hidden = true; }
+
+  /* ---------- saving ---------- */
+  function touch() {
+    dirty = true;
+    if (q.status === 'completed') q.status = 'draft';
+    const dn = $('#doneNote'); if (dn) dn.hidden = true;
+    syncInvoice();
+    updateAll();
+    clearTimeout(autosaveTimer);
+    if (savedOnce) autosaveTimer = setTimeout(() => save(true), 1500);
+  }
+  async function save(quiet) {
+    if (!q.number) q.number = nextNumber(q.type);
+    q.example = false;
+    q.updated = Date.now();
+    try {
+      await Store.saveQuote(q);
+      if (learn(q)) { Store.saveMemory().catch(() => {}); renderMemoryLists(); }
+      dirty = false; savedOnce = true;
+      updateAll();
+      if (!quiet) toast((q.type === 'invoice' ? 'Invoice ' : 'Quote ') + q.number + ' saved' + (q.leadId ? ' and sent to lead ' + q.leadId : '. Link it to a lead so it shows in the lead log'));
+      return true;
+    } catch (e) {
+      toast('Could not save this quote. Try again in a moment.');
+      return false;
+    }
+  }
+
+  /* ---------- saved quotes sheet ---------- */
+  function renderSaved() {
+    $('#savedCount').textContent = String(quotes.length);
+    const list = $('#savedList');
+    if (!list) return;
+    $$('[data-filter]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.filter === savedFilter)));
+    const term = ($('#f-search').value || '').trim().toLowerCase();
+    const shown = quotes.filter((z) => (savedFilter === 'all' || (z.type || 'quote') === savedFilter) &&
+      (!term || ((z.number || '') + ' ' + ((z.client && z.client.name) || '') + ' ' + (z.reference || '') + ' ' + (z.fromNumber || '') + ' ' + (z.leadId || '')).toLowerCase().indexOf(term) >= 0));
+    if (!shown.length) {
+      list.innerHTML = '<div class="empty">' + (quotes.length ? 'Nothing saved matches that.' : 'Nothing saved yet. Press Save and it will appear here.') + '</div>';
+      return;
+    }
+    list.innerHTML = shown.map((z) => {
+      const calc = C.calc(z);
+      const inv = z.type === 'invoice';
+      const chip = (z.leadId ? ' <span class="lead-chip">' + h(z.leadId) + '</span>' : '') + (inv ? ' <span class="tag-pill">Invoice</span>' + (z.paid ? ' <span class="count">Paid</span>' : '') : (z.status === 'completed' ? ' <span class="count">Completed</span>' : ''));
+      return '<div class="saved-item" data-id="' + h(z.id) + '"><div class="row"><b>' + h(z.number || 'No number') + chip + '</b><span class="muted">' + h(C.fmtDate(z.date)) + '</span></div>' +
+        '<div class="row"><span>' + h((z.client && z.client.name) || 'No client name') + (inv && z.fromNumber ? ' <span class="muted">from ' + h(z.fromNumber) + '</span>' : '') + '</span><b class="num">' + C.fmt(calc.total) + (z.vatOn ? ' incl. VAT' : '') + '</b></div>' +
+        '<div class="btns"><button class="btn small" type="button" data-act="open" data-id="' + h(z.id) + '">Open</button>' +
+        (inv ? '' : '<button class="btn small" type="button" data-act="invfor" data-id="' + h(z.id) + '">Invoice</button>') +
+        '<button class="btn small" type="button" data-act="dup" data-id="' + h(z.id) + '">Duplicate</button><button class="btn small danger" type="button" data-act="del" data-id="' + h(z.id) + '">Delete</button></div></div>';
+    }).join('');
+  }
+  function showSaved(on) { $('#savedBack').hidden = !on; if (on) { renderSaved(); $('#btnCloseSaved').focus(); } else $('#btnSaved').focus(); }
+  function twoStep(btn, label, fn) {
+    if (btn.dataset.armed) { clearTimeout(+btn.dataset.armed); delete btn.dataset.armed; btn.textContent = btn.dataset.orig; fn(); return; }
+    btn.dataset.orig = btn.textContent;
+    btn.textContent = label;
+    btn.dataset.armed = String(setTimeout(() => { btn.textContent = btn.dataset.orig; delete btn.dataset.armed; }, 3500));
+  }
+  function loadQuote(z, asCopy) {
+    q = JSON.parse(JSON.stringify(z));
+    if (!q.type) q.type = 'quote';
+    if (asCopy) { q.id = 'q' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); q.number = nextNumber(q.type); q.paid = false; q.date = todayISO(); q.updated = 0; q.leadId = ''; q.status = 'draft'; savedOnce = false; dirty = true; }
+    else { savedOnce = true; dirty = false; }
+    q.example = false;
+    renderAll();
+    showSaved(false);
+    setView('build');
+    window.scrollTo(0, 0);
+  }
+
+  /* ---------- views ---------- */
+  function setView(v) {
+    $('#shell').dataset.view = v;
+    $$('.tabs [data-view]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.view === v)));
+  }
+
+  /* ---------- download and copy ---------- */
+  function logoBytes() {
+    const bin = atob(LOGO_B64);
+    const u = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+    return u;
+  }
+  function missingForSend() {
+    const calc = C.calc(q);
+    const miss = [];
+    if (!q.client || !String(q.client.name || '').trim()) miss.push('the client name');
+    if (!(calc.subtotal > 0)) miss.push('a price');
+    return miss;
+  }
+  async function downloadDocx() {
+    if (!downloads) { toast('Word download is not available here. Use Copy summary instead.'); return; }
+    const miss = missingForSend();
+    if (miss.length) { toast('Add ' + miss.join(' and ') + ' before saving the Word file.'); return; }
+    if (!q.number) q.number = nextNumber(q.type);
+    let file;
+    try { file = C.buildDocx(q, logoBytes()); } catch (e) { toast('Could not build the Word file.'); return; }
+    const name = C.fileName(q);
+    try {
+      await downloads.save({ filename: name, data: new Blob([file], { type: DOCX_MIME }) });
+      q.status = 'completed';
+      await save(true);
+      const note = $('#doneNote');
+      note.innerHTML = '<b>Ready to send.</b> ' + h(name) + ' was saved from this page. Attach it to your email to the client. If it went to your Downloads folder, you can move it to your quotes folder, or turn on "Ask where to save each file" in your browser download settings so you choose the folder every time.';
+      note.hidden = false;
+      toast('Word file saved');
+    } catch (e) {
+      if (e && e.code === 'declined') return;
+      toast('The Word file could not be saved' + (e && e.code ? ' (' + e.code + ')' : '') + '.');
+    }
+  }
+  /* ---------- PDF ---------- */
+  const PDFMAKE_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js';
+  const PDFFONTS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js';
+  let pdfReady = null;
+  function loadScript(src) {
+    return new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = src; s.onload = res; s.onerror = () => rej(new Error('load failed'));
+      document.head.appendChild(s);
+    });
+  }
+  function loadPdfMake() {
+    if (window.pdfMake && window.pdfMake.vfs) return Promise.resolve();
+    if (!pdfReady) pdfReady = loadScript(PDFMAKE_URL).then(() => loadScript(PDFFONTS_URL)).catch((e) => { pdfReady = null; throw e; });
+    return pdfReady;
+  }
+  function pdfDef() {
+    const calc = C.calc(q), c = q.client || {}, rows = C.quoteRows(q, calc), cl = C.clauses(q);
+    const BLACK = '#111111', ROYAL = '#4169E1', BLUE = '#2F4FC4', GREY = '#6A6A6A', LINE = '#C9D1D1', TINT = '#EAF0FD';
+    const W = 515;
+    const qty = (n) => (Math.abs(n - Math.round(n)) < 1e-9 ? String(Math.round(n)) : String(C.round2(n)));
+    const heading = (t) => ({ text: t, bold: true, fontSize: 12, color: BLUE, margin: [0, 12, 0, 5], keepWithNext: true });
+    const info = C.infoRows(q);
+    const clientStack = [{ text: c.name || 'Client name', bold: true, fontSize: 13 }].concat(C.clientLines(q).map((s) => ({ text: s })));
+    const content = [
+      { columns: [
+        { image: LOGO_SRC, fit: [150, 52], width: 150 },
+        { width: '*', alignment: 'right', fontSize: 8, color: GREY, text: '71 Industria Ring Road, Parow Industria, Cape Town, 7493\n071 608 1632  |  info@climacore.co.za  |  www.climacore.co.za' },
+      ], columnGap: 12 },
+      { canvas: [
+        { type: 'rect', x: 0, y: 0, w: W / 2, h: 3, color: BLACK },
+        { type: 'rect', x: W / 2, y: 0, w: W / 2, h: 3, color: ROYAL },
+      ], margin: [0, 8, 0, 12] },
+      { text: C.fmtDate(q.date), alignment: 'right', margin: [0, 0, 0, 8] },
+      { stack: clientStack },
+      { text: C.docTitle(q), bold: true, fontSize: 20, color: BLUE, margin: [0, 14, 0, 6] },
+      { table: { widths: [80, '*'], body: info.map((i) => [{ text: i[0], bold: true }, { text: String(i[1]) }]) }, layout: 'noBorders' },
+    ];
+    if (q.type !== 'invoice' && q.scope && q.scope.trim()) {
+      content.push(heading('Scope of Work'));
+      q.scope.split(/\r?\n/).filter((s) => s.trim()).forEach((s) => content.push({ text: s.trim(), margin: [0, 0, 0, 4] }));
+    }
+    content.push(heading('Pricing'));
+    const head = ['No.', 'Description', 'Qty', 'Unit price (excl. VAT)', 'Total (excl. VAT)'].map((t, i) => ({ text: t, bold: true, color: '#FFFFFF', fillColor: BLACK, alignment: i >= 2 ? 'right' : 'left' }));
+    const body = rows.map((r, i) => [String(i + 1), r.desc, { text: qty(r.qty), alignment: 'right' }, { text: C.fmt(r.unit), alignment: 'right', noWrap: true }, { text: C.fmt(r.total), alignment: 'right', noWrap: true }]);
+    const grid = { hLineWidth: () => 0.6, vLineWidth: () => 0.6, hLineColor: () => LINE, vLineColor: () => LINE, paddingLeft: () => 6, paddingRight: () => 6, paddingTop: () => 4, paddingBottom: () => 4 };
+    content.push({ table: { headerRows: 1, dontBreakRows: true, widths: [26, '*', 34, 84, 84], body: [head].concat(body) }, layout: grid });
+    const tot = [];
+    if (q.vatOn) {
+      tot.push([{ text: 'Subtotal (excl. VAT)' }, { text: C.fmt(calc.subtotal), alignment: 'right' }]);
+      tot.push([{ text: 'VAT (' + calc.vatRate + '%)' }, { text: C.fmt(calc.vat), alignment: 'right' }]);
+      tot.push([{ text: 'TOTAL (incl. VAT)', bold: true, fillColor: TINT }, { text: C.fmt(calc.total), alignment: 'right', bold: true, fillColor: TINT }]);
+    } else {
+      tot.push([{ text: 'TOTAL', bold: true, fillColor: TINT }, { text: C.fmt(calc.total), alignment: 'right', bold: true, fillColor: TINT }]);
+    }
+    content.push({ columns: [{ width: '*', text: '' }, { width: 260, table: { widths: ['*', 100], body: tot }, layout: grid, unbreakable: true }], margin: [0, 8, 0, 0] });
+    if (q.type === 'invoice') {
+      const bl = String(q.banking || '').split(/\r?\n/).map((z) => z.trim()).filter(Boolean);
+      content.push(heading('Banking details'));
+      (bl.length ? bl : ['Banking details have not been added yet.']).forEach((z) => content.push({ text: z }));
+      content.push({ text: 'Please use ' + (q.number || 'the invoice number') + ' as the payment reference. Payment is due ' + (C.dueText(q) === 'On receipt' ? 'on receipt' : 'by ' + C.dueText(q)) + '.', margin: [0, 8, 0, 0] });
+    }
+    if (q.type !== 'invoice' && cl.length) {
+      content.push(heading('Terms and Conditions'));
+      content.push({ ol: cl.map((k) => ({ text: (k.title ? [{ text: k.title + ' ', bold: true }, k.body] : [k.body]), margin: [0, 0, 0, 3] })), fontSize: 9, lineHeight: 1.15 });
+    }
+    if (q.type !== 'invoice' && q.showAcceptance) {
+      content.push({ unbreakable: true, stack: [
+        heading('Acceptance'),
+        { text: 'By signing below, the Client accepts this quotation and its terms and conditions.', margin: [0, 0, 0, 8] },
+        { columns: [
+          { stack: [{ text: 'For the Service Provider', bold: true }, 'Climacore', { text: 'Name: ____________________', margin: [0, 8, 0, 0] }, { text: 'Signature: _________________', margin: [0, 8, 0, 0] }, { text: 'Date: ____________________', margin: [0, 8, 0, 0] }] },
+          { stack: [{ text: 'For the Client', bold: true }, c.name || '', { text: 'Name: ____________________', margin: [0, 8, 0, 0] }, { text: 'Signature: _________________', margin: [0, 8, 0, 0] }, { text: 'Date: ____________________', margin: [0, 8, 0, 0] }] },
+        ], columnGap: 20 },
+      ] });
+    }
+    content.push({ text: 'Team Climacore', margin: [0, 14, 0, 0] });
+    return {
+      pageSize: 'A4',
+      pageMargins: [40, 36, 40, 56],
+      defaultStyle: { fontSize: 10, lineHeight: 1.2, color: '#1B1B1B' },
+      info: { title: 'Quotation ' + (q.number || ''), author: 'Climacore' },
+      content,
+      footer: (page, pages) => ({ margin: [40, 10, 40, 0], stack: [
+        { canvas: [{ type: 'line', x1: 0, y1: 0, x2: W, y2: 0, lineWidth: 0.6, lineColor: LINE }] },
+        { text: '071 608 1632  |  info@climacore.co.za  |  www.climacore.co.za', alignment: 'center', fontSize: 8, color: GREY, margin: [0, 4, 0, 0] },
+        { text: [{ text: 'Proudly part of the Hydrocore Group of Companies', italics: true }, { text: '      Page ' + page + ' of ' + pages }], alignment: 'center', fontSize: 8, color: GREY },
+      ] }),
+    };
+  }
+  async function downloadPdf() {
+    const miss = missingForSend();
+    if (miss.length) { toast('Add ' + miss.join(' and ') + ' before saving the PDF.'); return; }
+    if (!q.number) q.number = nextNumber(q.type);
+    const btn = $('#btnPdf');
+    btn.disabled = true;
+    toast('Building the PDF...');
+    let blob;
+    try {
+      await loadPdfMake();
+      blob = await new Promise((res, rej) => { try { window.pdfMake.createPdf(pdfDef()).getBlob(res); } catch (e) { rej(e); } });
+    } catch (e) {
+      btn.disabled = false;
+      toast('Could not build the PDF. Check your internet connection and try again.');
+      return;
+    }
+    const name = C.fileName(q).replace(/\.docx$/i, '.pdf');
+    try {
+      if (downloads) {
+        await downloads.save({ filename: name, data: blob });
+      } else {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob); a.download = name;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      }
+      q.status = 'completed';
+      await save(true);
+      const note = $('#doneNote');
+      note.innerHTML = '<b>Ready to send.</b> ' + h(name) + ' was saved as a PDF. Attach it to your email to the client. If it went to your Downloads folder, move it to your quotes folder, or turn on "Ask where to save each file" in your browser download settings.';
+      note.hidden = false;
+      toast('PDF saved');
+    } catch (e) {
+      if (!(e && e.code === 'declined')) toast('The PDF could not be saved' + (e && e.code ? ' (' + e.code + ')' : '') + '.');
+    }
+    btn.disabled = false;
+  }
+  async function copySummary() {
+    const text = C.toText(q);
+    try { await navigator.clipboard.writeText(text); toast('Summary copied'); return; } catch (e) { /* fall back */ }
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    ta.remove();
+    toast(ok ? 'Summary copied' : 'Copy is blocked here. Select the quote and copy it by hand.');
+  }
+
+  /* ---------- memory: clients and equipment ---------- */
+  const mkey = (x) => String(x || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  function learn(x) {
+    if (!x || x.example) return false;
+    let changed = false;
+    const c = x.client || {};
+    const ck = mkey(c.name);
+    if (ck) {
+      const rec = { name: String(c.name).trim(), attention: c.attention || '', address: c.address || '', phone: c.phone || '', email: c.email || '' };
+      const old = memory.clients[ck];
+      if (!old || ['name', 'attention', 'address', 'phone', 'email'].some((k) => old[k] !== rec[k])) { rec.t = Date.now(); memory.clients[ck] = rec; changed = true; }
+    }
+    if (x.type !== 'invoice') {
+      (x.lines || []).forEach((l) => {
+        const k = mkey(l.desc);
+        if (l.kind !== 'material' || !k || !(C.parseNum(l.b) > 0)) return;
+        const rec = { desc: String(l.desc).trim(), cost: String(l.b), markup: !!l.markup };
+        const old = memory.items[k];
+        if (!old || old.cost !== rec.cost || old.markup !== rec.markup || old.desc !== rec.desc) { rec.t = Date.now(); memory.items[k] = rec; changed = true; }
+      });
+      const keys = Object.keys(memory.items);
+      if (keys.length > 300) keys.sort((a, b) => (memory.items[a].t || 0) - (memory.items[b].t || 0)).slice(0, keys.length - 300).forEach((k) => delete memory.items[k]);
+    }
+    return changed;
+  }
+  function afterLoad() {
+    if (!memory.seeded) {
+      quotes.slice().reverse().forEach(learn);
+      memory.seeded = true;
+      Store.saveMemory().catch(() => {});
+    }
+    renderMemoryLists();
+  }
+  function renderMemoryLists() {
+    const cl = Object.keys(memory.clients).map((k) => ({ k, r: memory.clients[k] })).sort((a, b) => a.r.name.localeCompare(b.r.name));
+    const it = Object.keys(memory.items).map((k) => ({ k, r: memory.items[k] })).sort((a, b) => a.r.desc.localeCompare(b.r.desc));
+    $('#dlClients').innerHTML = cl.map((c) => '<option value="' + h(c.r.name) + '"></option>').join('');
+    $('#dlItems').innerHTML = it.map((c) => '<option value="' + h(c.r.desc) + '"></option>').join('');
+    $('#memClientCount').textContent = String(cl.length);
+    $('#memItemCount').textContent = String(it.length);
+    $('#memClients').innerHTML = cl.length ? cl.map((c) => '<div class="mem-item"><div><b>' + h(c.r.name) + '</b><small>' + h([c.r.attention, c.r.phone, c.r.email].filter(Boolean).join(' · ') || 'No contact details') + '</small></div><button class="btn small danger" type="button" data-act="memdel" data-kind="clients" data-key="' + h(c.k) + '">Remove</button></div>').join('') : '<div class="empty">No clients yet. They appear here once you save a quote.</div>';
+    $('#memItems').innerHTML = it.length ? it.map((c) => '<div class="mem-item"><div><b>' + h(c.r.desc) + '</b><small>Cost each ' + C.fmt(C.parseNum(c.r.cost)) + (c.r.markup ? ', markup added' : ', no markup') + '</small></div><button class="btn small danger" type="button" data-act="memdel" data-kind="items" data-key="' + h(c.k) + '">Remove</button></div>').join('') : '<div class="empty">No equipment yet. Items from your saved quotes appear here with their last cost.</div>';
+  }
+  function applyClientMemory() {
+    const rec = memory.clients[mkey(q.client.name)];
+    if (!rec) return;
+    let any = false;
+    ['attention', 'address', 'phone', 'email'].forEach((k) => { if (!String(q.client[k] || '').trim() && rec[k]) { q.client[k] = rec[k]; any = true; } });
+    if (rec.name && rec.name !== q.client.name) { q.client.name = rec.name; any = true; }
+    if (any) { fillStatic(); touch(); toast('Filled in the details for ' + rec.name); }
+  }
+  function showMem(on) { $('#memBack').hidden = !on; if (on) { renderMemoryLists(); $('#btnCloseMem').focus(); } else $('#btnMemory').focus(); }
+
+  /* ---------- backup ---------- */
+  async function exportBackup() {
+    if (!downloads) { toast('Downloads are not available here.'); return; }
+    const data = JSON.stringify({ app: 'climacore-quote-builder', version: 2, exported: new Date().toISOString(), quotes, settings, memory }, null, 1);
+    try {
+      await downloads.save({ filename: 'Climacore_backup_' + todayISO() + '.json', data: new Blob([data], { type: 'application/json' }) });
+      toast('Backup saved');
+    } catch (e) { if (!(e && e.code === 'declined')) toast('The backup could not be saved.'); }
+  }
+  async function loadBackup(file) {
+    let obj;
+    try { obj = JSON.parse(await file.text()); } catch (e) { toast('That file is not a backup from the Quote Builder.'); return; }
+    if (!obj || !Array.isArray(obj.quotes)) { toast('That file is not a backup from the Quote Builder.'); return; }
+    let n = 0;
+    for (const z of obj.quotes) {
+      if (!z || !z.id) continue;
+      if (!z.type) z.type = 'quote';
+      try { await Store.saveQuote(z); learn(z); n++; } catch (e) { /* skip this one */ }
+    }
+    if (obj.settings && typeof obj.settings === 'object') { Object.assign(settings, obj.settings); try { await Store.saveSettings(); } catch (e) { /* keep going */ } }
+    if (obj.memory && obj.memory.clients) {
+      Object.keys(obj.memory.clients).forEach((k) => { if (!memory.clients[k]) memory.clients[k] = obj.memory.clients[k]; });
+      Object.keys(obj.memory.items || {}).forEach((k) => { if (!memory.items[k]) memory.items[k] = obj.memory.items[k]; });
+    }
+    memory.seeded = true;
+    try { await Store.saveMemory(); } catch (e) { /* keep going */ }
+    renderMemoryLists(); renderSaved();
+    toast('Loaded ' + n + ' quotes and invoices from the backup');
+  }
+
+  /* ---------- invoices ---------- */
+  function newId() { return 'q' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function buildInvoice(src, kind) {
+    const inv = {
+      id: newId(), type: 'invoice', number: nextNumber('invoice'), date: todayISO(), reference: '',
+      client: { name: '', attention: '', address: '', phone: '', email: '' },
+      fromId: '', fromNumber: '', invKind: kind || 'custom', mode: 'single', singleDesc: '', invAmount: '',
+      markup: '0', uplift: '0', vatOn: true, vatRate: settings.vatRate, deposit: settings.deposit, validDays: settings.validDays,
+      dueDays: settings.dueDays || '7', vatNo: settings.vatNo || '', banking: settings.banking || '', paid: false,
+      preset: 'custom', terms: '', showAcceptance: false, scope: '', lines: [], status: 'draft', example: false, updated: 0, leadId: '',
+    };
+    if (src) {
+      const calc = C.calc(src);
+      const dep = Math.min(100, Math.max(0, C.parseNum(src.deposit)));
+      const depAmt = C.round2(calc.subtotal * dep / 100);
+      let amount = calc.subtotal, label = 'Full amount';
+      if (kind === 'deposit') { amount = depAmt; label = 'Deposit (' + dep + '%)'; inv.dueDays = '0'; }
+      else if (kind === 'balance') { amount = C.round2(calc.subtotal - depAmt); label = 'Balance (' + C.round2(100 - dep) + '%)'; }
+      inv.client = JSON.parse(JSON.stringify(src.client || inv.client));
+      inv.fromId = src.id; inv.fromNumber = src.number || ''; inv.leadId = src.leadId || '';
+      inv.reference = src.reference || '';
+      inv.vatOn = src.vatOn; inv.vatRate = src.vatRate; inv.deposit = src.deposit;
+      inv.singleDesc = label + ': ' + (src.singleDesc || 'Supply and installation');
+      inv.invAmount = amount.toFixed(2);
+    }
+    return inv;
+  }
+  async function createInvoice(kind) {
+    if (q.type === 'invoice') return;
+    if (missingForSend().length) { toast('Add ' + missingForSend().join(' and ') + ' to the quote first.'); return; }
+    if (!(await save(true))) return;
+    q = buildInvoice(q, kind);
+    dirty = true; savedOnce = false;
+    renderAll(); setView('quote'); window.scrollTo(0, 0);
+    toast('Invoice ' + q.number + ' created. Check the details, then save it.');
+  }
+
+  /* ---------- supplier quote import ---------- */
+  let pdfjsReady = null;
+  function loadScript2(src) {
+    return new Promise((res, rej) => { const el = document.createElement('script'); el.src = src; el.onload = res; el.onerror = () => rej(new Error('load failed')); document.head.appendChild(el); });
+  }
+  function loadPdfJs() {
+    if (window.pdfjsLib) return Promise.resolve();
+    if (!pdfjsReady) pdfjsReady = loadScript2('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js').then(() => {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }).catch((e) => { pdfjsReady = null; throw e; });
+    return pdfjsReady;
+  }
+  async function readSupplierPdf(file) {
+    await loadPdfJs();
+    const doc = await window.pdfjsLib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+    const items = [];
+    for (let p = 1; p <= doc.numPages; p++) {
+      const page = await doc.getPage(p);
+      const vp = page.getViewport({ scale: 1 });
+      const tc = await page.getTextContent();
+      tc.items.forEach((it) => { if (it.str && it.str.trim()) items.push({ s: it.str, x: it.transform[4], y: (p - 1) * 100000 + (vp.height - it.transform[5]), w: it.width, h: it.height }); });
+    }
+    return items;
+  }
+  async function importSupplier(file) {
+    if (!file) return;
+    toast('Reading the supplier quote...');
+    let res;
+    try { res = C.parseSupplier(C.rowsFromItems(await readSupplierPdf(file))); }
+    catch (e) { toast('Could not read that PDF. Check your internet connection, or add the lines by hand.'); return; }
+    if (!res.lines.length) { toast('No priced lines found. A scanned PDF has no text to read, so add those lines by hand.'); return; }
+    imp = res;
+    $('#impInc').checked = !!res.incl;
+    renderImp();
+    $('#impBack').hidden = false;
+    $('#btnImpAdd').focus();
+  }
+  function impTotals() {
+    const on = imp.lines.filter((l) => l.on);
+    const sum = C.round2(on.reduce((t, l) => t + C.parseNum(l.qty) * C.parseNum(l.unit), 0));
+    return { n: on.length, sum };
+  }
+  function renderImp() {
+    const t = imp.totals;
+    const all = C.round2(imp.lines.reduce((x, l) => x + l.total, 0));
+    let meta = 'Found ' + imp.lines.length + ' priced line' + (imp.lines.length === 1 ? '' : 's') + ' adding up to ' + C.fmt(all) + '.';
+    if (t.sub != null) meta += Math.abs(all - t.sub) <= 1.01 ? ' This matches the supplier subtotal of ' + C.fmt(t.sub) + '.' : ' The supplier subtotal reads ' + C.fmt(t.sub) + ', so check the lines.';
+    else if (t.total != null && Math.abs(all - t.total) <= 1.01) meta += ' This matches the supplier total of ' + C.fmt(t.total) + ', so the prices include VAT.';
+    if (imp.ref) meta += ' Supplier quote number: ' + imp.ref + '.';
+    meta += ' Untick anything that is not equipment, and fix any wording or amounts.';
+    $('#impMeta').textContent = meta;
+    $('#impRows').innerHTML = imp.lines.map((l, i) =>
+      '<div class="imp-row' + (l.on ? '' : ' off') + '" data-i="' + i + '">' +
+      '<label class="chk"><input type="checkbox" id="imp-on-' + i + '" data-ik="on"' + (l.on ? ' checked' : '') + ' aria-label="Include this line"></label>' +
+      '<label class="f d"><span>Description</span><input type="text" id="imp-d-' + i + '" data-ik="desc" value="' + h(l.desc) + '" autocomplete="off"></label>' +
+      '<label class="f q"><span>Qty</span><input type="text" inputmode="decimal" id="imp-q-' + i + '" data-ik="qty" value="' + h(l.qty) + '"></label>' +
+      '<label class="f u"><span>Cost each (R)</span><input type="text" inputmode="decimal" id="imp-u-' + i + '" data-ik="unit" value="' + h(l.unit.toFixed(2)) + '"></label>' +
+      '<div class="tot num">Line total ' + C.fmt(C.parseNum(l.qty) * C.parseNum(l.unit)) + '</div></div>').join('');
+    const x = impTotals();
+    $('#impState').textContent = x.n + ' line' + (x.n === 1 ? '' : 's') + ' selected, ' + C.fmt(x.sum) + ($('#impInc').checked ? ' incl. VAT' : ' excl. VAT');
+    $('#btnImpAdd').disabled = !x.n;
+  }
+  function addImported() {
+    if (!imp) return;
+    const inc = $('#impInc').checked;
+    const div = 1 + C.parseNum(q.vatRate || settings.vatRate) / 100;
+    const picked = imp.lines.filter((l) => l.on && C.parseNum(l.qty) > 0);
+    if (!picked.length) return;
+    const blank = q.lines.length === 1 && q.lines[0].kind === 'material' && !String(q.lines[0].desc || '').trim() && !String(q.lines[0].b || '').trim();
+    if (blank || q.example) q.lines = q.lines.filter((l) => l.kind !== 'material' || String(l.desc || '').trim() && !q.example);
+    let cost = 0;
+    picked.forEach((l) => {
+      let unit = C.parseNum(l.unit);
+      if (inc) unit = C.round2(unit / div);
+      cost += C.parseNum(l.qty) * unit;
+      q.lines.unshift(Object.assign(C.newLine('material', settings), { desc: l.desc, a: String(l.qty), b: unit.toFixed(2), markup: true }));
+    });
+    q.example = false;
+    q.supplier = { ref: imp.ref || '', total: C.round2(cost) };
+    $('#impBack').hidden = true;
+    imp = null;
+    renderLines(); touch();
+    toast(picked.length + ' line' + (picked.length === 1 ? '' : 's') + ' added with your markup');
+  }
+
+  /* ---------- events ---------- */
+  function onField(e) {
+    const el = e.target;
+    if (el.dataset && el.dataset.f) {
+      const f = el.dataset.f;
+      if (el.type === 'checkbox') setPath(q, f, el.checked);
+      else if (el.type === 'radio') { if (!el.checked) return; setPath(q, f, el.value); }
+      else setPath(q, f, el.value);
+      if (f === 'preset') {
+        if (el.value !== 'custom') { q.terms = C.PRESETS[el.value].text; $('#f-terms').value = q.terms; }
+      } else if (f === 'terms') {
+        q.preset = 'custom'; $('#f-preset').value = 'custom';
+      }
+      touch();
+      if (f === 'client.name' && e.type === 'change') applyClientMemory();
+      return;
+    }
+    const row = el.closest && el.closest('.line');
+    if (row && el.dataset.k) {
+      const l = q.lines.find((z) => z.id === row.dataset.id);
+      if (!l) return;
+      l[el.dataset.k] = el.type === 'checkbox' ? el.checked : el.value;
+      q.example = false;
+      if (el.dataset.k === 'desc' && e.type === 'change' && l.kind === 'material') {
+        const it = memory.items[mkey(l.desc)];
+        if (it && !String(l.b || '').trim()) {
+          l.b = it.cost; l.markup = it.markup;
+          const bi = row.querySelector('[data-k="b"]'); if (bi) bi.value = l.b;
+          const mi = row.querySelector('[data-k="markup"]'); if (mi) mi.checked = l.markup;
+          toast('Used your last cost for ' + it.desc);
+        }
+      }
+      touch();
+    }
+  }
+  document.addEventListener('input', onField);
+  document.addEventListener('change', onField);
+
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-act],[data-view],button');
+    if (!t) return;
+    const act = t.dataset.act;
+    if (t.dataset.view) { setView(t.dataset.view); return; }
+    if (act === 'add') {
+      const l = C.newLine(t.dataset.kind, settings);
+      q.lines.push(l); q.example = false; renderLines(); touch();
+      const first = $('#' + l.id + '-desc'); if (first) first.focus();
+    } else if (act === 'rm') {
+      q.lines = q.lines.filter((z) => z.id !== t.dataset.id); renderLines(); touch();
+    } else if (act === 'open') {
+      const z = quotes.find((x) => x.id === t.dataset.id); if (z) loadQuote(z, false);
+    } else if (act === 'dup') {
+      const z = quotes.find((x) => x.id === t.dataset.id); if (z) loadQuote(z, true);
+    } else if (act === 'invkind') {
+      createInvoice(t.dataset.kind);
+    } else if (act === 'invfor') {
+      const z = quotes.find((x) => x.id === t.dataset.id);
+      if (z) { loadQuote(z, false); setView('quote'); $('#invChoice').hidden = false; $('#kDeposit').focus(); }
+    } else if (act === 'memdel') {
+      const k = t.dataset.key, kind = t.dataset.kind;
+      if (memory[kind] && memory[kind][k]) { delete memory[kind][k]; Store.saveMemory().catch(() => toast('Could not save that change.')); renderMemoryLists(); }
+    } else if (act === 'del') {
+      twoStep(t, 'Confirm delete', async () => {
+        try { await Store.deleteQuote(t.dataset.id); toast('Quote deleted'); } catch (err) { toast('Could not delete that quote.'); }
+      });
+    }
+  });
+
+  $('#btnNew').addEventListener('click', function () {
+    const go = () => { q = newQuote(false); dirty = false; savedOnce = false; renderAll(); setView('build'); window.scrollTo(0, 0); $('#f-client-name').focus(); };
+    if (dirty && !q.example) twoStep(this, 'Discard changes?', go); else go();
+  });
+  $('#btnBlank').addEventListener('click', () => { q = newQuote(false); dirty = false; savedOnce = false; renderAll(); $('#f-client-name').focus(); });
+  $('#btnSaved').addEventListener('click', () => showSaved(true));
+  $('#f-lead').addEventListener('change', function () {
+    const v = this.value.trim();
+    if (!v) return;
+    const m = v.match(/^(L\d+)/i);
+    let l = m ? leadById(m[1].toUpperCase()) : null;
+    if (!l) { const t = v.toLowerCase(); const hits = leads.filter((x) => leadLabel(x).toLowerCase().indexOf(t) >= 0); if (hits.length === 1) l = hits[0]; }
+    if (l) linkLead(l.id); else toast('No single lead matches that. Pick one from the list.');
+  });
+  $('#btnLeadSuggest').addEventListener('click', function () { linkLead(this.dataset.id); });
+  $('#btnLeadNew').addEventListener('click', newLeadFromClient);
+  $('#btnLeadClear').addEventListener('click', () => { q.leadId = ''; $('#f-lead').value = ''; touch(); renderLead(); });
+  ['#f-client-name', '#f-client-phone', '#f-client-email'].forEach((sel) => $(sel).addEventListener('change', () => renderLead()));
+  $('#signinForm').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const err = $('#si-err'), go = $('#si-go');
+    err.hidden = true; go.disabled = true; go.textContent = 'Signing in…';
+    try {
+      await Store.signIn($('#si-email').value.trim(), $('#si-pass').value);
+      await Store.loadAll();
+      $('#si-pass').value = '';
+      signedIn();
+      if (!q || q.example) { q = newQuote(true); renderAll(); }
+    } catch (e) {
+      err.textContent = e.status === 400 ? 'That email and password did not work. Use your lead log login.' : (e.status === 403 || /permission|policy/i.test(e.message) ? 'Your login works, but you are not on the ClimaCore team list. Ask Mariette to add you.' : 'Could not sign in. Check your internet connection.');
+      err.hidden = false;
+      if (e.status !== 400) Store.signOut();
+    }
+    go.disabled = false; go.textContent = 'Sign in';
+  });
+  $('#btnSignOut').addEventListener('click', () => { Store.signOut(); quotes = []; leads = []; renderSaved(); needSignIn(); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && Store.session) refreshLeads(); });
+  setInterval(() => { if (Store.session && !document.hidden) refreshLeads(); }, 60000);
+  $('#btnNewInv').addEventListener('click', function () {
+    const go = () => { q = buildInvoice(null, 'custom'); dirty = false; savedOnce = false; renderAll(); setView('build'); window.scrollTo(0, 0); $('#f-client-name').focus(); };
+    if (dirty && !q.example) twoStep(this, 'Discard changes?', go); else go();
+  });
+  $('#btnInvoice').addEventListener('click', () => { const b = $('#invChoice'); b.hidden = !b.hidden; if (!b.hidden) $('#kDeposit').focus(); });
+  $('#kCancel').addEventListener('click', () => { $('#invChoice').hidden = true; $('#btnInvoice').focus(); });
+  $('#btnInvDefaults').addEventListener('click', async () => {
+    Object.assign(settings, { vatNo: q.vatNo || '', banking: q.banking || '', dueDays: q.dueDays || '7' });
+    try { await Store.saveSettings(); toast('New invoices will start with these details'); } catch (e) { toast('Could not save your defaults.'); }
+  });
+  $('#btnMemory').addEventListener('click', () => showMem(true));
+  $('#btnCloseMem').addEventListener('click', () => showMem(false));
+  $('#memBack').addEventListener('click', (e) => { if (e.target.id === 'memBack') showMem(false); });
+  $('#btnExport').addEventListener('click', exportBackup);
+  $('#btnLoadBackup').addEventListener('click', () => $('#f-backup').click());
+  $('#f-backup').addEventListener('change', function () { const f = this.files && this.files[0]; this.value = ''; if (f) loadBackup(f); });
+  $('#btnImport').addEventListener('click', () => $('#f-supplier').click());
+  $('#f-supplier').addEventListener('change', function () { const f = this.files && this.files[0]; this.value = ''; if (f) importSupplier(f); });
+  $('#btnImpCancel').addEventListener('click', () => { $('#impBack').hidden = true; imp = null; });
+  $('#btnImpAdd').addEventListener('click', addImported);
+  $('#impInc').addEventListener('change', () => { if (imp) renderImp(); });
+  $('#impRows').addEventListener('input', (e) => {
+    const el = e.target, row = el.closest('.imp-row');
+    if (!row || !imp || !el.dataset.ik) return;
+    const l = imp.lines[+row.dataset.i];
+    const k = el.dataset.ik;
+    if (k === 'on') { l.on = el.checked; row.classList.toggle('off', !l.on); }
+    else if (k === 'desc') l.desc = el.value;
+    else { l[k] = el.value; }
+    const t = row.querySelector('.tot'); if (t) t.textContent = 'Line total ' + C.fmt(C.parseNum(l.qty) * C.parseNum(l.unit));
+    const x = impTotals();
+    $('#impState').textContent = x.n + ' line' + (x.n === 1 ? '' : 's') + ' selected, ' + C.fmt(x.sum) + ($('#impInc').checked ? ' incl. VAT' : ' excl. VAT');
+    $('#btnImpAdd').disabled = !x.n;
+  });
+  $$('[data-filter]').forEach((b) => b.addEventListener('click', () => { savedFilter = b.dataset.filter; renderSaved(); }));
+  $('#btnCloseSaved').addEventListener('click', () => showSaved(false));
+  $('#savedBack').addEventListener('click', (e) => { if (e.target.id === 'savedBack') showSaved(false); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (!$('#impBack').hidden) { $('#impBack').hidden = true; imp = null; }
+    else if (!$('#memBack').hidden) showMem(false);
+    else if (!$('#savedBack').hidden) showSaved(false);
+  });
+  $('#f-search').addEventListener('input', renderSaved);
+  $('#btnSave').addEventListener('click', () => save(false));
+  $('#btnDocx').addEventListener('click', downloadDocx);
+  $('#btnPdf').addEventListener('click', downloadPdf);
+  $('#btnCopy').addEventListener('click', copySummary);
+  $('#btnDefaults').addEventListener('click', async () => {
+    const lab = q.lines.find((l) => l.kind === 'labour');
+    const trv = q.lines.find((l) => l.kind === 'travel');
+    settings = Object.assign(settings, {
+      markup: q.markup, vatRate: q.vatRate, deposit: q.deposit, validDays: q.validDays, preset: q.preset, terms: q.terms,
+      labourRate: lab && lab.c ? lab.c : settings.labourRate, hoursPerDay: lab && lab.b ? lab.b : settings.hoursPerDay, travelRate: trv && trv.b ? trv.b : settings.travelRate,
+    });
+    try { await Store.saveSettings(); toast('New quotes will start with these rates and terms'); } catch (e) { toast('Could not save your defaults.'); }
+  });
+
+  /* ---------- start ---------- */
+  $('#brandLogo').src = LOGO_SRC;
+  Store.loadLocal();
+  q = newQuote(true);
+  renderAll();
+  renderSaved();
+  afterLoad();
+  Store.connect();
+  (async function () {
+    try {
+      if (window.claude && window.claude.use) downloads = await window.claude.use('downloads');
+    } catch (e) { /* use the browser instead */ }
+    try {
+      if (!downloads) downloads = { save: async (o) => { const a = document.createElement('a'); a.href = URL.createObjectURL(o.data); a.download = o.filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); } };
+      if (q && q.type !== 'invoice') $('#btnDocx').hidden = false;
+    } catch (e) { /* no downloads here */ }
+  })();
+})();
+
+</script>
+
+</body></html>
