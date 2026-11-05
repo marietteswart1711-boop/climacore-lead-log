@@ -252,7 +252,8 @@ const inMonth=l=>!month||(l.date||"").slice(0,7)===month;
 const monthName=m=>new Date(m+"-01T12:00:00").toLocaleDateString("en-ZA",{month:"long",year:"numeric"});
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const rand=n=>"R "+Math.round(n).toLocaleString("en-ZA").replace(/,/g," ");
+const amt=n=>{const[w,d]=Math.abs(+n||0).toFixed(2).split(".");return (n<0?"-":"")+w.replace(/\B(?=(\d{3})+(?!\d))/g," ")+"."+d};
+const rand=n=>"R "+amt(n);
 const today=()=>new Date().toISOString().slice(0,10);
 $("f-source").innerHTML=SOURCES.map(s=>`<option>${s}</option>`).join("");
 
@@ -372,7 +373,7 @@ function render(){
       <td class="tag">${esc(l.kind)}${l.kind&&l.work?" · ":""}${esc(l.work)}</td>
       <td class="tag">${esc(l.source)}</td>
       <td><select class="cell status" data-k="status" data-s="${esc(l.status)}" aria-label="Status">${opt(STATUSES,l.status)}</select></td>
-      <td style="text-align:right"><input class="cell money" data-k="quoted" inputmode="decimal" value="${l.quoted!=null&&l.quoted!==""?esc(Number(l.quoted).toLocaleString("en-ZA",{maximumFractionDigits:2}).replace(/,/g," ")):""}" aria-label="Quoted amount in rand"></td>
+      <td style="text-align:right"><input class="cell money" data-k="quoted" inputmode="decimal" value="${l.quoted!=null&&l.quoted!==""?esc(amt(l.quoted)):""}" aria-label="Quoted amount in rand"></td>
       <td><select class="cell" data-k="invoiced" aria-label="Invoiced">${opt(["Yes","No"],l.invoiced,true)}</select></td>
       <td><select class="cell" data-k="paid" aria-label="Paid">${opt(["Yes","No"],l.paid,true)}</select></td>
     </tr>${det}`}).join("");
@@ -468,7 +469,7 @@ $("rows").addEventListener("change",e=>{
   if(el.dataset.notes){const id=tr.dataset.id;save(id,{notes:el.value}).catch(()=>{}).then(()=>{delete drafts[el.id];const s=$("ns-"+id);if(s){s.textContent="Saved";setTimeout(()=>{if(s)s.textContent=""},2000)}});return}
   if(!el.dataset.k)return;
   let v=el.value;
-  if(el.dataset.k==="quoted"){const n=parseFloat(v.replace(/[^\d.]/g,""));v=isNaN(n)?null:n}
+  if(el.dataset.k==="quoted"){let t=v.replace(/[^\d.,]/g,"");if(t.includes(",")&&!t.includes(".")&&/,\d{1,2}$/.test(t))t=t.replace(/,(?=\d{1,2}$)/,".");t=t.replace(/,/g,"");const n=parseFloat(t);v=isNaN(n)?null:Math.round(n*100)/100}
   if(el.dataset.k==="status")el.dataset.s=v;
   save(tr.dataset.id,{[el.dataset.k]:v}).then(()=>safeRender()).catch(()=>{});
 });
