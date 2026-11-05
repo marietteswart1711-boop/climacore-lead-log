@@ -153,6 +153,21 @@ select.status[data-s="Won"]{color:var(--won);background:var(--won-bg)}
 select.status[data-s="Lost"]{color:var(--lost);background:var(--lost-bg)}
 select.status[data-s="Spam"]{color:var(--spam);background:var(--spam-bg)}
 input.money{font-family:var(--f-mono);width:120px;text-align:right;font-variant-numeric:tabular-nums}
+.note-add{display:grid;gap:6px}
+.note-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.note-bar label{display:inline-flex;gap:6px;align-items:center;font:600 12px var(--f-body);color:var(--muted);flex:1 1 200px;min-width:0}
+.note-bar input{flex:1 1 140px;min-width:0;font:13px var(--f-body);padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
+.note-bar button{padding:6px 14px}
+.note-list{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px;max-height:260px;overflow:auto}
+.note-list li{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 9px;font-size:13px}
+.note-meta{display:flex;flex-wrap:wrap;gap:2px 10px;align-items:baseline;font-size:12px;color:var(--muted)}
+.note-meta b{color:var(--ink);font-weight:600}
+.note-for{color:var(--accent);font-weight:600}
+.note-meta .fu-x{margin-left:auto}
+.note-list .rich{margin-top:2px;overflow-wrap:anywhere;white-space:pre-wrap}
+.note-old{margin-top:8px;font-size:12px;color:var(--muted)}
+.note-old summary{cursor:pointer;font-weight:600}
+.note-old .rt{margin-top:6px}
 .empty{padding:40px 20px;text-align:center;color:var(--muted)}
 form.add{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
 form.add label{display:grid;gap:4px;font:600 12px var(--f-body);color:var(--muted);min-width:0}
@@ -237,6 +252,7 @@ form.add .row{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end;fle
       <thead><tr><th>Date</th><th>Name / what they need</th><th>Contact</th><th>Suburb</th><th>Job</th><th>Source</th><th>Status</th><th style="text-align:right">Quoted (R)</th><th>Invoiced</th><th>Paid</th></tr></thead>
       <tbody id="rows"><tr><td colspan="10" class="empty">Leads appear here once the log loads. New website enquiries are added every morning at 7:45.</td></tr></tbody>
     </table>
+    <datalist id="noteFor"></datalist>
   </div>
   <p class="foot">Rows shaded yellow are invoiced but not paid. Change a status, price or payment straight in the table; it saves for everyone who opens this page.</p>
 </div>
@@ -246,7 +262,7 @@ form.add .row{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end;fle
 const STATUSES=["New","Quoted","Won","Lost","Spam"];
 const SOURCES=["Google ad","Website form","Facebook","Phone call","Walk-in","Referral","Repeat customer","Other"];
 const SRC_COL={"Google ad":"#0b6fa4","Website form":"#2aa6a0","Facebook":"#5b6ad0","Phone call":"#c2771c","Walk-in":"#8a5a44","Referral":"#7aa33a","Repeat customer":"#14212b","Other":"#9aa6af"};
-let user=null, myId=null, sb=null, teamNames={}, fuRows=[], leadRows=[];
+let user=null, myId=null, sb=null, teamNames={}, fuRows=[], leadRows=[], noteRows=[];
 let budget={monthlyCap:15000,daily:{"Commercial & Industrial":457,"Residential Aircon":43}}, spend={}, leads=[], meta=null, filter="All", query="", month="", db=null;
 const inMonth=l=>!month||(l.date||"").slice(0,7)===month;
 const monthName=m=>new Date(m+"-01T12:00:00").toLocaleDateString("en-ZA",{month:"long",year:"numeric"});
@@ -343,9 +359,9 @@ function budgetCard(months){
 }
 function opt(list,v,blank){return (blank?`<option value=""${!v?" selected":""}></option>`:"")+list.map(x=>`<option${x===v?" selected":""}>${x}</option>`).join("")}
 function render(){
-  stats();ads();
+  stats();ads();fillNoteFor();
   const q=query.toLowerCase();
-  const rows=leads.filter(l=>inMonth(l)&&(filter==="All"||l.status===filter)&&(!q||[l.name,l.suburb,l.email,l.need,l.phone,l.source,l.notes,...fuList(l).map(f=>f.comment)].join(" ").toLowerCase().includes(q)));
+  const rows=leads.filter(l=>inMonth(l)&&(filter==="All"||l.status===filter)&&(!q||[l.name,l.suburb,l.email,l.need,l.phone,l.source,l.notes,...fuList(l).map(f=>f.comment),...noteList(l).map(n=>(n.text||"")+" "+(n.for||""))].join(" ").toLowerCase().includes(q)));
   if(!leads.length){$("rows").innerHTML=`<tr><td colspan="10" class="empty">No leads yet. Use “Add a lead”, or wait for the 7:45 morning check of the website form.</td></tr>`;return}
   if(!rows.length){$("rows").innerHTML=`<tr><td colspan="10" class="empty">No leads match this filter.</td></tr>`;return}
   const fresh=new Date(Date.now()-1*864e5).toISOString();
@@ -353,13 +369,17 @@ function render(){
   $("rows").innerHTML=rows.map(l=>{
     const owed=l.status==="Won"&&l.invoiced==="Yes"&&l.paid!=="Yes";
     const fus=fuList(l); fus.forEach(f=>f.by&&uids.add(f.by));
+    const nts=noteList(l);
     const last=fus[0];
     const sum=fus.length?`<div class="fu-sum">Followed up ${fus.length}× · last ${fmt(last.at)}</div>`:(l.status==="New"||l.status==="Quoted")?`<div class="fu-sum none">No follow-up yet</div>`:"";
     const lid=esc(l._id);
     const det=`<tr class="detail${owed?" owed":""}${l.status==="Spam"?" spam":""}" data-id="${lid}"><td colspan="10"><div class="det">
       ${rtBar(lid)}
-      <div><div class="lab"><span id="nl-${lid}">Notes</span><span class="saved" id="ns-${lid}"></span></div>
-        <div class="rt" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="nl-${lid}" id="n-${lid}" data-notes="1" data-ph="Anything about this lead: site details, who to speak to, access, prices discussed…">${drafts["n-"+l._id]!=null?clean(drafts["n-"+l._id]):notesHtml(l)}</div></div>
+      <div><div class="lab"><span id="nl-${lid}">Notes</span><span>${nts.length?nts.length+" note"+(nts.length===1?"":"s"):""}</span></div>
+        <div class="note-add"><div class="rt" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="nl-${lid}" id="nn-${lid}" data-newnote="1" data-ph="Write a note…">${clean(drafts["nn-"+l._id]??"")}</div>
+          <div class="note-bar"><label>For <input type="text" list="noteFor" data-notefor="1" id="nf-${lid}" value="${esc(drafts["nf-"+l._id]??"")}" placeholder="Who is it for? (optional)" autocomplete="off"></label><button type="button" class="primary" data-addnote="1">Add note</button></div></div>
+        ${nts.length?`<ul class="note-list">${nts.map(n=>`<li><div class="note-meta"><b data-uid="${esc(n.by)}">${"…"}</b><span>${fmt(n.at)}</span>${n.for?`<span class="note-for">For ${esc(n.for)}</span>`:""}<button type="button" class="fu-x" data-notex="${esc(n.id)}" aria-label="Remove this note">Remove</button></div><div class="rich">${n.html?clean(n.html):esc(n.text)}</div></li>`).join("")}</ul>`:""}
+        ${(l.notes||drafts["n-"+l._id]!=null)?`<details class="note-old"><summary>Earlier notes (before the note log)</summary><div class="rt" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Earlier notes" id="n-${lid}" data-notes="1" data-ph="Earlier notes">${drafts["n-"+l._id]!=null?clean(drafts["n-"+l._id]):notesHtml(l)}</div></details>`:""}</div>
       <div><div class="lab"><span>Follow-ups</span><span>${fus.length?fus.length+" logged":""}</span></div>
         <div class="fu-add"><div class="rt one" contenteditable="true" role="textbox" aria-label="Follow-up comment" id="c-${lid}" data-fucomment="1" data-ph="Comment, e.g. called, left voicemail; sent quote; call back Tuesday">${clean(drafts["c-"+l._id]??"")}</div>
           <label class="fu-tick"><input type="checkbox" data-futick="1" id="t-${lid}"> Followed up</label></div>
@@ -378,6 +398,17 @@ function render(){
       <td><select class="cell" data-k="paid" aria-label="Paid">${opt(["Yes","No"],l.paid,true)}</select></td>
     </tr>${det}`}).join("");
   document.querySelectorAll("[data-uid]").forEach(el=>{const e=(el.dataset.uid||"").toLowerCase();el.textContent=teamNames[e]||e.split("@")[0]||"Someone"});
+}
+function noteList(l){return Object.entries(l.noteLog||{}).filter(([k,v])=>v&&v.at).map(([k,v])=>Object.assign({id:k},v)).sort((a,b)=>b.at.localeCompare(a.at))}
+function fillNoteFor(){
+  const set=new Set(Object.values(teamNames).filter(Boolean));
+  leads.forEach(l=>noteList(l).forEach(n=>n.for&&set.add(n.for)));
+  const dl=$("noteFor"); if(dl)dl.innerHTML=[...set].sort().map(n=>`<option value="${esc(n)}">`).join("");
+}
+function noteText(l){
+  const who=id=>(teamNames[(id||"").toLowerCase()]||id||"");
+  const log=noteList(l).map(n=>fmt(n.at)+" "+who(n.by)+(n.for?" (for "+n.for+")":"")+": "+(n.text||"")).join(" | ");
+  return [log,l.notes?"Earlier: "+l.notes:""].filter(Boolean).join(" | ");
 }
 function fuList(l){return Object.entries(l.followUps||{}).filter(([k,v])=>v&&v.at).map(([k,v])=>Object.assign({id:k},v)).sort((a,b)=>b.at.localeCompare(a.at))}
 function fmt(iso){return new Date(iso).toLocaleString("en-ZA",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})}
@@ -425,7 +456,7 @@ document.addEventListener("focusin",e=>{if(e.target.classList&&e.target.classLis
 $("rows").addEventListener("mousedown",e=>{if(e.target.closest(".rt-bar button"))e.preventDefault()});
 $("rows").addEventListener("click",e=>{
   const b=e.target.closest(".rt-bar button[data-rt]"); if(!b)return;
-  const tr=b.closest("tr"); let ed=rtLast&&tr.contains(rtLast)?rtLast:tr.querySelector("[data-notes]");
+  const tr=b.closest("tr"); let ed=rtLast&&tr.contains(rtLast)?rtLast:(tr.querySelector("[data-newnote]")||tr.querySelector("[data-notes]"));
   if(!ed)return;
   if(document.activeElement!==ed)ed.focus();
   try{document.execCommand("styleWithCSS",false,true)}catch(_){}
@@ -450,14 +481,14 @@ function safeRender(){
   pending=false;render();
 }
 $("rows").addEventListener("focusout",()=>{setTimeout(()=>{if(pending)safeRender()},0)});
-$("rows").addEventListener("input",e=>{const el=e.target;if(el.dataset.notes||el.dataset.fucomment)drafts[el.id]=el.isContentEditable?el.innerHTML:el.value});
+$("rows").addEventListener("input",e=>{const el=e.target;if(el.dataset.notes||el.dataset.fucomment||el.dataset.newnote||el.dataset.notefor)drafts[el.id]=el.isContentEditable?el.innerHTML:el.value});
 async function logFollowUp(tr){
   const id=tr.dataset.id, c=$("c-"+id), t=$("t-"+id);
   const ch=clean(c.innerHTML);const {error}=await sb.from("follow_ups").insert({lead_id:id,comment:plainOf(ch),comment_html:ch});
   if(error){$("sync").textContent="Couldn't save the follow-up. Try again."}else{c.innerHTML="";delete drafts["c-"+id];await loadFollowUps()}
   if(t)t.checked=false;
 }
-$("rows").addEventListener("keydown",e=>{const el=e.target;if(el.dataset.fucomment&&e.key==="Enter"&&!e.shiftKey&&(el.innerText||"").trim()){e.preventDefault();logFollowUp(el.closest("tr"))}});
+$("rows").addEventListener("keydown",e=>{const el=e.target;if((el.dataset.newnote||el.dataset.notefor)&&e.key==="Enter"&&(e.metaKey||e.ctrlKey||el.dataset.notefor)){e.preventDefault();addNote(el.closest("tr"));return}if(el.dataset.fucomment&&e.key==="Enter"&&!e.shiftKey&&(el.innerText||"").trim()){e.preventDefault();logFollowUp(el.closest("tr"))}});
 async function save(id,patch){
   const {error}=await sb.from("leads").update(patch).eq("id",id);
   if(error){$("sync").textContent="Couldn't save that change. Try again in a moment.";throw error}
@@ -473,8 +504,19 @@ $("rows").addEventListener("change",e=>{
   if(el.dataset.k==="status")el.dataset.s=v;
   save(tr.dataset.id,{[el.dataset.k]:v}).then(()=>safeRender()).catch(()=>{});
 });
+async function addNote(tr){
+  const id=tr.dataset.id,c=$("nn-"+id),f=$("nf-"+id);
+  const html=clean(c.innerHTML),text=plainOf(html);if(!text){c.focus();return}
+  const {error}=await sb.from("lead_notes").insert({lead_id:id,for_name:(f.value||"").trim()||null,body:text,body_html:html});
+  if(error){$("sync").textContent="Couldn't save the note. Try again.";return}
+  c.innerHTML="";f.value="";delete drafts["nn-"+id];delete drafts["nf-"+id];await loadNotes();
+}
 $("rows").addEventListener("click",e=>{
   const n=e.target.closest(".need");if(n)n.classList.toggle("open");
+  const ab=e.target.closest("[data-addnote]");if(ab){addNote(ab.closest("tr"));return}
+  const x2=e.target.closest("[data-notex]");
+  if(x2){if(!x2.classList.contains("arm")){x2.classList.add("arm");x2.textContent="Confirm remove";setTimeout(()=>{x2.classList.remove("arm");x2.textContent="Remove"},4000);return}
+    sb.from("lead_notes").delete().eq("id",x2.dataset.notex).then(({error})=>{if(error)$("sync").textContent="Couldn't remove that note.";else loadNotes()});return}
   const x=e.target.closest("[data-fux]");
   if(x){if(!x.classList.contains("arm")){x.classList.add("arm");x.textContent="Confirm remove";setTimeout(()=>{x.classList.remove("arm");x.textContent="Remove"},4000);return}
     sb.from("follow_ups").delete().eq("id",x.dataset.fux).then(({error})=>{if(error)$("sync").textContent="Couldn't remove that follow-up.";else loadFollowUps()})}
@@ -499,7 +541,7 @@ function csv(){
   const H=["Date","Name or business","Phone","Email","Suburb","Home or business","Type of work","Source","What they need","Status","Quoted (R)","Invoiced","Paid","Notes","Follow-ups"];
   const K=["date","name","phone","email","suburb","kind","work","source","need","status","quoted","invoiced","paid"];
   const q=s=>{s=s==null?"":String(s);return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
-  return [H.join(","),...leads.filter(inMonth).map(l=>[...K.map(k=>q(l[k])),q(l.notes),q(fuList(l).map(f=>fmt(f.at)+(f.comment?": "+f.comment:"")).join(" | "))].join(","))].join("\n");
+  return [H.join(","),...leads.filter(inMonth).map(l=>[...K.map(k=>q(l[k])),q(noteText(l)),q(fuList(l).map(f=>fmt(f.at)+(f.comment?": "+f.comment:"")).join(" | "))].join(","))].join("\n");
 }
 function syncLine(){
   const n=leads.length;
@@ -517,11 +559,17 @@ function mapLead(r){
 function attachFollowUps(){
   const by={};fuRows.forEach(f=>{(by[f.lead_id]=by[f.lead_id]||{})[f.id]={at:f.at,comment:f.comment||"",commentHtml:f.comment_html||"",by:f.by_email||""}});
   leads.forEach(l=>{l.followUps=by[l._id]||{}});
+  const nb={};noteRows.forEach(n=>{(nb[n.lead_id]=nb[n.lead_id]||{})[n.id]={at:n.at,by:n.by_email||"",for:n.for_name||"",text:n.body||"",html:n.body_html||""}});
+  leads.forEach(l=>{l.noteLog=nb[l._id]||{}});
 }
 async function loadLeads(){
   const {data,error}=await sb.from("leads").select("*").order("date",{ascending:false}).order("added_at",{ascending:false});
   if(error){$("sync").textContent="Couldn't load the leads. Reload the page.";return}
   leads=data.map(mapLead);attachFollowUps();fillMonths();safeRender();syncLine();
+}
+async function loadNotes(){
+  const {data}=await sb.from("lead_notes").select("*").order("at",{ascending:false});
+  noteRows=data||[];attachFollowUps();safeRender();
 }
 async function loadFollowUps(){
   const {data}=await sb.from("follow_ups").select("*").order("at",{ascending:false});
@@ -553,16 +601,17 @@ async function startApp(session){
   if(!ok){$("login").hidden=false;$("app").hidden=true;$("loginMsg").textContent=myId+" isn't on the ClimaCore team list yet. Ask Mariette to add you.";$("loginMsg").className="msg err";return}
   $("login").hidden=true;$("app").hidden=false;
   $("whoami").textContent="Signed in as "+(teamNames[myId]||myId);
-  await Promise.all([loadLeads(),loadFollowUps(),loadSpend(),loadBudget(),loadMeta()]);
+  await Promise.all([loadLeads(),loadFollowUps(),loadNotes(),loadSpend(),loadBudget(),loadMeta()]);
   const t={};const deb=(k,fn)=>{clearTimeout(t[k]);t[k]=setTimeout(fn,300)};
   sb.channel("lead-log")
     .on("postgres_changes",{event:"*",schema:"public",table:"leads"},()=>deb("l",loadLeads))
     .on("postgres_changes",{event:"*",schema:"public",table:"follow_ups"},()=>deb("f",loadFollowUps))
+    .on("postgres_changes",{event:"*",schema:"public",table:"lead_notes"},()=>deb("n",loadNotes))
     .on("postgres_changes",{event:"*",schema:"public",table:"spend"},()=>deb("s",loadSpend))
     .on("postgres_changes",{event:"*",schema:"public",table:"budget"},()=>deb("b",loadBudget))
     .on("postgres_changes",{event:"*",schema:"public",table:"meta"},()=>deb("m",loadMeta))
     .subscribe();
-  document.addEventListener("visibilitychange",()=>{if(!document.hidden){loadLeads();loadFollowUps();loadSpend();loadMeta()}});
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden){loadLeads();loadFollowUps();loadNotes();loadSpend();loadMeta()}});
 }
 $("bSave").addEventListener("click",async()=>{
   const n=id=>parseFloat($(id).value.replace(/[^\d.]/g,""));
