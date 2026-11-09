@@ -1130,6 +1130,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); outline
       await refreshLeads();
       renderSaved();
       afterLoad();
+      openFromUrl();
     },
     async connect() {
       this.session = this.lsGet(SESSION_KEY, null);
@@ -1176,6 +1177,25 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); outline
     } catch (e) { return; }
     $('#dlLeads').innerHTML = leads.map((l) => '<option value="' + h(leadLabel(l)) + '"></option>').join('');
     if (q) renderLead();
+  }
+  /* ---------- opened from the lead log (quotes.html?open=<id> or ?lead=<lead id>) ---------- */
+  let urlHandled = false;
+  function openFromUrl() {
+    if (urlHandled) return;
+    const p = new URLSearchParams(location.search);
+    const id = p.get('open'), lead = p.get('lead');
+    if (!id && !lead) return;
+    urlHandled = true;
+    try { history.replaceState(null, '', location.pathname); } catch (e) { /* keep the address */ }
+    if (id) {
+      const z = quotes.find((x) => x.id === id);
+      if (z) { loadQuote(z, false); toast('Opened ' + (z.type === 'invoice' ? 'invoice ' : 'quote ') + (z.number || '')); }
+      else toast('That quote could not be found. It may have been deleted.');
+      return;
+    }
+    q = newQuote(false); dirty = false; savedOnce = false;
+    renderAll(); setView('build'); window.scrollTo(0, 0);
+    if (leadById(lead)) linkLead(lead); else toast('Lead ' + lead + ' was not found in the lead log.');
   }
   function leadLabel(l) { return l.id + ' · ' + (l.name || 'No name') + (l.suburb ? ' · ' + l.suburb : '') + (l.phone ? ' · ' + l.phone : ''); }
   function leadById(id) { return leads.find((l) => l.id === id); }
