@@ -153,6 +153,17 @@ select.status[data-s="Won"]{color:var(--won);background:var(--won-bg)}
 select.status[data-s="Lost"]{color:var(--lost);background:var(--lost-bg)}
 select.status[data-s="Spam"]{color:var(--spam);background:var(--spam-bg)}
 input.money{font-family:var(--f-mono);width:120px;text-align:right;font-variant-numeric:tabular-nums}
+.qlinks{display:flex;flex-direction:column;align-items:flex-end;gap:2px;margin-top:4px}
+.qlinks a,.qdocs a{color:var(--accent);font:600 12px var(--f-body);text-decoration:none;white-space:nowrap}
+.qlinks a:hover,.qdocs a:hover{text-decoration:underline}
+.qdocs{grid-column:1/-1}
+.qdocs ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.qdocs li{display:grid;grid-template-columns:minmax(120px,auto) auto minmax(0,1fr) auto;gap:4px 12px;font-size:13px;align-items:baseline}
+.qdocs .qtot{font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:right}
+.qdocs .qst{color:var(--muted);font-size:12px}
+.qdocs .none{color:var(--muted);font-size:13px}
+.qdocs .qnew{display:inline-block;margin-top:6px}
+@media (max-width:600px){.qdocs li{grid-template-columns:auto minmax(0,1fr) auto}.qdocs .qst{display:none}}
 .note-add{display:grid;gap:6px}
 .note-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
 .note-bar label{display:inline-flex;gap:6px;align-items:center;font:600 12px var(--f-body);color:var(--muted);flex:1 1 200px;min-width:0}
@@ -262,7 +273,12 @@ form.add .row{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end;fle
 const STATUSES=["New","Quoted","Won","Lost","Spam"];
 const SOURCES=["Google ad","Website form","Facebook","Phone call","Walk-in","Referral","Repeat customer","Other"];
 const SRC_COL={"Google ad":"#0b6fa4","Website form":"#2aa6a0","Facebook":"#5b6ad0","Phone call":"#c2771c","Walk-in":"#8a5a44","Referral":"#7aa33a","Repeat customer":"#14212b","Other":"#9aa6af"};
-let user=null, myId=null, sb=null, teamNames={}, fuRows=[], leadRows=[], noteRows=[];
+let user=null, myId=null, sb=null, teamNames={}, fuRows=[], leadRows=[], noteRows=[], quoteRows=[];
+const QB="quotes.html";
+const docsFor=id=>quoteRows.filter(d=>d.lead_id===id);
+const docLabel=d=>(d.type==="invoice"?"Invoice ":"Quote ")+(d.number||"(no number)");
+const docState=d=>d.type==="invoice"?(d.paid?"Paid":"Not paid"):(d.status==="completed"?"Completed":d.status==="draft"?"Draft":(d.status||""));
+const docLink=(d,txt)=>`<a href="${QB}?open=${encodeURIComponent(d.id)}" target="_blank" rel="noopener" title="Open ${esc(docLabel(d))} in the Quote Builder">${txt}</a>`;
 let budget={monthlyCap:15000,daily:{"Commercial & Industrial":457,"Residential Aircon":43}}, spend={}, leads=[], meta=null, filter="All", query="", month="", db=null;
 const inMonth=l=>!month||(l.date||"").slice(0,7)===month;
 const monthName=m=>new Date(m+"-01T12:00:00").toLocaleDateString("en-ZA",{month:"long",year:"numeric"});
@@ -361,7 +377,7 @@ function opt(list,v,blank){return (blank?`<option value=""${!v?" selected":""}><
 function render(){
   stats();ads();fillNoteFor();
   const q=query.toLowerCase();
-  const rows=leads.filter(l=>inMonth(l)&&(filter==="All"||l.status===filter)&&(!q||[l.name,l.suburb,l.email,l.need,l.phone,l.source,l.notes,...fuList(l).map(f=>f.comment),...noteList(l).map(n=>(n.text||"")+" "+(n.for||""))].join(" ").toLowerCase().includes(q)));
+  const rows=leads.filter(l=>inMonth(l)&&(filter==="All"||l.status===filter)&&(!q||[l.name,l.suburb,l.email,l.need,l.phone,l.source,l.notes,...fuList(l).map(f=>f.comment),...noteList(l).map(n=>(n.text||"")+" "+(n.for||"")),...docsFor(l._id).map(d=>d.number||"")].join(" ").toLowerCase().includes(q)));
   if(!leads.length){$("rows").innerHTML=`<tr><td colspan="10" class="empty">No leads yet. Use “Add a lead”, or wait for the 7:45 morning check of the website form.</td></tr>`;return}
   if(!rows.length){$("rows").innerHTML=`<tr><td colspan="10" class="empty">No leads match this filter.</td></tr>`;return}
   const fresh=new Date(Date.now()-1*864e5).toISOString();
@@ -373,7 +389,13 @@ function render(){
     const last=fus[0];
     const sum=fus.length?`<div class="fu-sum">Followed up ${fus.length}× · last ${fmt(last.at)}</div>`:(l.status==="New"||l.status==="Quoted")?`<div class="fu-sum none">No follow-up yet</div>`:"";
     const lid=esc(l._id);
+    const qd=docsFor(l._id);
+    const qlinks=qd.length?`<div class="qlinks">${qd.map(d=>docLink(d,esc(d.number||docLabel(d))+" ↗")).join("")}</div>`:"";
+    const qsec=`<div class="qdocs"><div class="lab"><span>Quotes &amp; invoices</span><span>${qd.length?qd.length+" in the Quote Builder":""}</span></div>
+      ${qd.length?`<ul>${qd.map(d=>`<li>${docLink(d,esc(docLabel(d))+" ↗")}<span class="qst">${esc(d.doc_date||"")}</span><span class="qst">${esc(docState(d))}</span><span class="qtot">R ${amt(d.total)}</span></li>`).join("")}</ul>`:`<div class="none">No quotes in the Quote Builder for this lead yet.</div>`}
+      <a class="qnew" href="${QB}?lead=${encodeURIComponent(l._id)}" target="_blank" rel="noopener">+ New quote for this lead ↗</a></div>`;
     const det=`<tr class="detail${owed?" owed":""}${l.status==="Spam"?" spam":""}" data-id="${lid}"><td colspan="10"><div class="det">
+      ${qsec}
       ${rtBar(lid)}
       <div><div class="lab"><span id="nl-${lid}">Notes</span><span>${nts.length?nts.length+" note"+(nts.length===1?"":"s"):""}</span></div>
         <div class="note-add"><div class="rt" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="nl-${lid}" id="nn-${lid}" data-newnote="1" data-ph="Write a note…">${clean(drafts["nn-"+l._id]??"")}</div>
@@ -393,7 +415,7 @@ function render(){
       <td class="tag">${esc(l.kind)}${l.kind&&l.work?" · ":""}${esc(l.work)}</td>
       <td class="tag">${esc(l.source)}</td>
       <td><select class="cell status" data-k="status" data-s="${esc(l.status)}" aria-label="Status">${opt(STATUSES,l.status)}</select></td>
-      <td style="text-align:right"><input class="cell money" data-k="quoted" inputmode="decimal" value="${l.quoted!=null&&l.quoted!==""?esc(amt(l.quoted)):""}" aria-label="Quoted amount in rand"></td>
+      <td style="text-align:right"><input class="cell money" data-k="quoted" inputmode="decimal" value="${l.quoted!=null&&l.quoted!==""?esc(amt(l.quoted)):""}" aria-label="Quoted amount in rand">${qlinks}</td>
       <td><select class="cell" data-k="invoiced" aria-label="Invoiced">${opt(["Yes","No"],l.invoiced,true)}</select></td>
       <td><select class="cell" data-k="paid" aria-label="Paid">${opt(["Yes","No"],l.paid,true)}</select></td>
     </tr>${det}`}).join("");
@@ -575,6 +597,11 @@ async function loadFollowUps(){
   const {data}=await sb.from("follow_ups").select("*").order("at",{ascending:false});
   fuRows=data||[];attachFollowUps();safeRender();
 }
+async function loadQuotes(){
+  const {data,error}=await sb.from("quote_docs").select("id,lead_id,type,number,doc_date,total,status,paid,updated_at").not("lead_id","is",null).order("doc_date",{ascending:false}).order("updated_at",{ascending:false});
+  if(error)return;
+  quoteRows=(data||[]).map(d=>Object.assign(d,{total:Number(d.total)||0}));safeRender();
+}
 async function loadSpend(){
   const {data}=await sb.from("spend").select("*");
   spend={};(data||[]).forEach(r=>spend[r.month]={total:Number(r.total),campaigns:r.campaigns||{},updatedAt:r.updated_at});safeRender();
@@ -601,17 +628,18 @@ async function startApp(session){
   if(!ok){$("login").hidden=false;$("app").hidden=true;$("loginMsg").textContent=myId+" isn't on the ClimaCore team list yet. Ask Mariette to add you.";$("loginMsg").className="msg err";return}
   $("login").hidden=true;$("app").hidden=false;
   $("whoami").textContent="Signed in as "+(teamNames[myId]||myId);
-  await Promise.all([loadLeads(),loadFollowUps(),loadNotes(),loadSpend(),loadBudget(),loadMeta()]);
+  await Promise.all([loadLeads(),loadFollowUps(),loadNotes(),loadQuotes(),loadSpend(),loadBudget(),loadMeta()]);
   const t={};const deb=(k,fn)=>{clearTimeout(t[k]);t[k]=setTimeout(fn,300)};
   sb.channel("lead-log")
     .on("postgres_changes",{event:"*",schema:"public",table:"leads"},()=>deb("l",loadLeads))
     .on("postgres_changes",{event:"*",schema:"public",table:"follow_ups"},()=>deb("f",loadFollowUps))
     .on("postgres_changes",{event:"*",schema:"public",table:"lead_notes"},()=>deb("n",loadNotes))
+    .on("postgres_changes",{event:"*",schema:"public",table:"quote_docs"},()=>deb("q",loadQuotes))
     .on("postgres_changes",{event:"*",schema:"public",table:"spend"},()=>deb("s",loadSpend))
     .on("postgres_changes",{event:"*",schema:"public",table:"budget"},()=>deb("b",loadBudget))
     .on("postgres_changes",{event:"*",schema:"public",table:"meta"},()=>deb("m",loadMeta))
     .subscribe();
-  document.addEventListener("visibilitychange",()=>{if(!document.hidden){loadLeads();loadFollowUps();loadNotes();loadSpend();loadMeta()}});
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden){loadLeads();loadFollowUps();loadNotes();loadQuotes();loadSpend();loadMeta()}});
 }
 $("bSave").addEventListener("click",async()=>{
   const n=id=>parseFloat($(id).value.replace(/[^\d.]/g,""));
