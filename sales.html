@@ -63,6 +63,8 @@ td.num,th.num{text-align:right;font-family:var(--f-mono);white-space:nowrap}
 .late{color:var(--bad);font-weight:600}
 .flag{display:inline-block;font:600 11px var(--f-body);color:var(--bad);background:var(--bad-bg);border-radius:4px;padding:0 6px;margin:1px 4px 1px 0}
 .flag.w{color:var(--warn);background:var(--warn-bg)}
+.flag.ok{color:var(--good,#15803d);background:var(--good-bg,#dcf3e3)}
+.flag.off{color:var(--muted);background:var(--soft,#eceff1)}
 .muted{color:var(--muted)}
 .cell-edit{width:150px;padding:4px 7px;font-size:13px}
 .cell-lbl{display:block;font-size:11px;color:var(--muted);margin-top:4px}
@@ -197,8 +199,12 @@ button.ok:hover{border-color:var(--good);background:var(--good-bg)}
   <section data-pane="score" hidden>
     <div class="filters" style="margin-bottom:10px"><label class="muted">Month <select id="sMonth"></select></label></div>
     <div class="grid" id="scoreGrid"></div>
-    <div class="panel" style="margin-top:12px"><h2>Commission on won leads</h2><p class="sub">4% to the rep who closes, 1% to the rep who introduced it, for 12 months from client start. <b>On projects, commission is calculated on the profit only</b>, not on the quote or invoice value. Paid after the client pays. No log, no commission.</p>
-      <div class="tbl-wrap" style="margin-top:10px"><table><thead><tr><th>Client</th><th>Company</th><th>Closed by</th><th class="num">Quote</th><th class="num">Profit</th><th class="num">4%</th><th>Introduced by</th><th class="num">1%</th><th>Client start</th><th>Valid until</th></tr></thead><tbody id="commRows"></tbody></table></div>
+    <div class="panel" style="margin-top:12px"><h2>Commission on won leads</h2><p class="sub">4% to the rep who closes, 1% to the rep who introduced it. <b>A rep earns commission on a client for exactly 12 months from the client start date</b> (e.g. 1 Feb 2026 to 31 Jan 2027); after that it becomes a house account and no commission is paid. <b>On projects, commission is calculated on the profit only</b>, not on the quote or invoice value. Paid after the client pays. No log, no commission.</p>
+      <div class="tbl-wrap" style="margin-top:10px"><table><thead><tr><th>Client</th><th>Company</th><th>Closed by</th><th class="num">Quote</th><th class="num">Profit</th><th class="num">4%</th><th>Introduced by</th><th class="num">1%</th><th>Client start</th><th>Valid until</th><th>Commission</th></tr></thead><tbody id="commRows"></tbody></table></div>
+    </div>
+    <div class="panel" style="margin-top:12px"><h2>Commission invoices</h2><p class="sub">Every invoice that earns commission, per client. Commission = 4% × (invoice amount − dumping/materials). Invoices on account (credit application) still earn commission. Only invoices inside the client's 12-month window count.</p>
+      <div class="filters" style="margin:8px 0"><label class="muted">Rep <select id="ciRep"><option value="">Everyone</option></select></label> <label class="muted">Clients <select id="ciState"><option value="">All</option><option value="active">Earning commission</option><option value="ending">Ending within 60 days</option><option value="ended">Ended</option></select></label> <span class="muted" id="ciTotal"></span></div>
+      <div class="tbl-wrap"><table><thead><tr><th>Rep</th><th>Client</th><th>Site</th><th>Invoice</th><th>Payment</th><th class="num">Invoice (R)</th><th class="num">Dumping (R)</th><th class="num">Commission (R)</th><th>Commission until</th></tr></thead><tbody id="ciRows"></tbody></table></div>
     </div>
   </section>
 
@@ -236,7 +242,7 @@ button.ok:hover{border-color:var(--good);background:var(--good-bg)}
 
   <!-- RULES -->
   <section data-pane="rules" hidden>
-    <div class="callout" style="margin-bottom:12px"><b>Commission: calculated on profit only.</b> Win a new client for any group company and the rep who closes earns 4%, the rep who introduced it 1%. <b>On projects, the commission is worked out on the project's profit (excl. VAT), not on the quote or invoice value.</b> Fill in the project profit on the lead once it's known, so the Scoreboard shows the right amount. Paid after the client pays. The 4% replaces your normal commission on that job. No log, no commission.</div>
+    <div class="callout" style="margin-bottom:12px"><b>Commission: calculated on profit only.</b> Win a new client for any group company and the rep who closes earns 4%, the rep who introduced it 1%. <b>On projects, the commission is worked out on the project's profit (excl. VAT), not on the quote or invoice value.</b> Fill in the project profit on the lead once it's known, so the Scoreboard shows the right amount. Paid after the client pays. The 4% replaces your normal commission on that job. No log, no commission. <b>Commission on a client runs for exactly 12 months from the client start date</b> (the month of the first invoice), e.g. 1 Feb 2026 to 31 Jan 2027. After that the client is a house account. The Scoreboard shows when each client’s commission ends.</div>
     <div class="grid">
       <div class="panel"><h2>The three rules</h2><ol class="rules">
         <li><b>Ask about all four.</b> Every client gets asked about the other group companies.</li>
@@ -344,6 +350,29 @@ const money=n=>n==null||n===""?"":Number(n).toLocaleString("en-ZA",{maximumFract
 const todayStr=()=>new Date(Date.now()+2*3600e3).toISOString().slice(0,10);
 const fmtDT=d=>d?new Date(d).toLocaleString("en-ZA",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"";
 let ownerLog=[];
+let commInv=[];
+const fmtDY=d=>d?new Date(d+"T00:00:00").toLocaleDateString("en-ZA",{day:"numeric",month:"short",year:"numeric"}):"";
+const money2=n=>n==null||n===""?"":Number(n).toLocaleString("en-ZA",{minimumFractionDigits:2,maximumFractionDigits:2});
+function commState(l){
+  if(!l||!l.commission_valid_until)return {k:"none",html:""};
+  const today=new Date().toISOString().slice(0,10);
+  const days=Math.round((new Date(l.commission_valid_until+"T00:00:00")-new Date(today+"T00:00:00"))/864e5);
+  if(days<0)return {k:"ended",html:`<span class="flag off" title="Commission period is over: house account">Ended ${fmtDY(l.commission_valid_until)}</span>`};
+  if(days<=60)return {k:"ending",html:`<span class="flag w">Ends in ${days} day${days===1?"":"s"}</span>`};
+  return {k:"active",html:`<span class="flag ok">Earning until ${fmtDY(l.commission_valid_until)}</span>`};
+}
+async function loadCommInv(){const {data,error}=await sb.from("sf_commission_invoices").select("*").order("client").order("invoice_no");if(!error){commInv=data||[];if(typeof renderCommInv==="function")renderCommInv()}}
+function renderCommInv(){
+  if(!$("ciRows"))return;
+  const repSel=$("ciRep"),reps=[...new Set(commInv.map(i=>i.rep).filter(Boolean))].sort();
+  const cur=repSel.value;repSel.innerHTML='<option value="">Everyone</option>'+reps.map(r=>`<option ${r===cur?"selected":""}>${esc(r)}</option>`).join("");
+  const st=$("ciState").value;
+  const byId=Object.fromEntries(leads.map(l=>[l.id,l]));
+  const rows=commInv.filter(i=>(!repSel.value||i.rep===repSel.value)&&(!st||commState(byId[i.lead_id]).k===st));
+  const tot=rows.reduce((a,i)=>a+(+i.commission||0),0),amt=rows.reduce((a,i)=>a+(+i.invoice_amount||0),0),dmp=rows.reduce((a,i)=>a+(+i.dumping||0),0);
+  $("ciTotal").textContent=rows.length?`${rows.length} invoice${rows.length===1?"":"s"} · invoiced R ${money2(amt)} · dumping R ${money2(dmp)} · commission R ${money2(tot)}`:"";
+  $("ciRows").innerHTML=rows.map(i=>{const l=byId[i.lead_id];return `<tr data-id="${i.lead_id||""}"><td>${esc(i.rep||"")}</td><td>${esc(i.client)}</td><td class="muted">${esc(i.site||"")}</td><td>${esc(i.invoice_no||"")}</td><td>${esc(i.payment||"")}</td><td class="num">${money2(i.invoice_amount)}</td><td class="num">${+i.dumping?money2(i.dumping):""}</td><td class="num"><b>${money2(i.commission)}</b></td><td>${commState(l).html}</td></tr>`}).join("")||`<tr><td colspan="9" class="empty">No commission invoices${repSel.value||st?" match this filter":" yet"}.</td></tr>`;
+}
 function renderLog(){const q=($("logQ").value||"").toLowerCase();const rows=ownerLog.filter(x=>!q||[x.client,x.list_name,x.old_value,x.new_value,x.changed_by].join(" ").toLowerCase().includes(q));$("logCount").textContent=`(${ownerLog.length})`;$("logRows").innerHTML=rows.slice(0,300).map(x=>`<tr style="cursor:default"><td style="white-space:nowrap">${fmtDT(x.at)}</td><td><b>${esc(x.client||"")}</b></td><td class="hide-sm muted">${esc(x.list_name||"")}</td><td>${esc(x.field)}</td><td class="muted">${esc(x.old_value||"(blank)")}</td><td>${esc(x.new_value||"(blank)")}</td><td>${esc(x.changed_by||"")}</td></tr>`).join("")||`<tr><td colspan="7" class="empty">No changes yet.</td></tr>`}
 async function loadLog(){const {data,error}=await sb.from("sf_owner_log").select("*").order("at",{ascending:false}).limit(1000);if(!error){ownerLog=data||[];renderLog()}}
 const fmtD=d=>d?new Date(d+"T00:00:00").toLocaleDateString("en-ZA",{day:"numeric",month:"short"}):"";
@@ -478,7 +507,8 @@ function renderScore(){
   const sel=$("sMonth");const cur=sel.value||currentMonth();sel.innerHTML=months.map(m=>`<option ${m===cur?"selected":""}>${m}</option>`).join("");
   $("scoreGrid").innerHTML=team.filter(t=>t.role==="rep"&&t.active).map(t=>scoreCard(t.name,sel.value)).join("");
   const won=leads.filter(l=>l.status==="Won");
-  $("commRows").innerHTML=won.map(l=>`<tr data-id="${l.id}"><td>${esc(l.client)}</td><td>${esc(l.company_sold_for||"")}</td><td>${esc(l.closed_by||l.rep||"")}</td><td class="num">${money(l.quote_value)}</td><td class="num">${l.profit_value!=null?money(l.profit_value):`<span class="flag w" title="Commission is showing on the quote value until the profit is filled in">Add profit</span>`}</td><td class="num">${money(l.closer_commission)}</td><td>${esc(l.introduced_by||"")}</td><td class="num">${money(l.introducer_commission)}</td><td>${fmtD(l.client_start_date)}</td><td>${fmtD(l.commission_valid_until)}</td></tr>`).join("")||`<tr><td colspan="10" class="empty">No won leads yet.</td></tr>`;
+  $("commRows").innerHTML=won.map(l=>`<tr data-id="${l.id}"><td>${esc(l.client)}</td><td>${esc(l.company_sold_for||"")}</td><td>${esc(l.closed_by||l.rep||"")}</td><td class="num">${money(l.quote_value)}</td><td class="num">${l.profit_value!=null?money(l.profit_value):`<span class="flag w" title="Commission is showing on the quote value until the profit is filled in">Add profit</span>`}</td><td class="num">${money(l.closer_commission)}</td><td>${esc(l.introduced_by||"")}</td><td class="num">${money(l.introducer_commission)}</td><td>${fmtDY(l.client_start_date)}</td><td>${fmtDY(l.commission_valid_until)}</td><td>${commState(l).html}</td></tr>`).join("")||`<tr><td colspan="11" class="empty">No won leads yet.</td></tr>`;
+  renderCommInv();
 }
 /* ---------- AI MANAGER ---------- */
 function renderBriefs(){
@@ -694,7 +724,7 @@ async function startApp(session){
   $("fRep").innerHTML=`<option value="">All reps</option>`+reps().map(c=>`<option>${esc(c)}</option>`).join("");
   $("fStatus").innerHTML=`<option value="">All statuses</option>`+OPTS.statuses.map(c=>`<option>${c}</option>`).join("");
   try{const t=localStorage.getItem("sf-tab");if(t)document.querySelector(`.tabs [data-tab="${t}"]`)?.click()}catch(_){}
-  await Promise.all([loadLeads(),loadActs(),loadRef(),loadBriefs(),isMgr?loadMail():null]);loadTargets();loadLog();$("logQ").addEventListener("input",renderLog);
+  await Promise.all([loadLeads(),loadActs(),loadRef(),loadBriefs(),isMgr?loadMail():null]);loadCommInv();$("ciRep").addEventListener("change",renderCommInv);$("ciState").addEventListener("change",renderCommInv);loadTargets();loadLog();$("logQ").addEventListener("input",renderLog);
   const tm={};const deb=(k,fn)=>{clearTimeout(tm[k]);tm[k]=setTimeout(fn,400)};
   sb.channel("sales-force")
     .on("postgres_changes",{event:"*",schema:"public",table:"sf_leads"},()=>deb("l",loadLeads))
