@@ -97,6 +97,26 @@ legend{font:700 12px var(--f-body);text-transform:uppercase;letter-spacing:.05em
 .msg{font-size:13px;color:var(--muted)} .msg.err{color:var(--bad)}
 .who-bar{font-size:12px;color:var(--muted);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .rules li{margin:3px 0}
+button.danger{color:var(--bad);border-color:var(--bad-bg)}
+button.danger:hover{border-color:var(--bad);background:var(--bad-bg)}
+button.ok{color:var(--good);border-color:var(--good-bg)}
+button.ok:hover{border-color:var(--good);background:var(--good-bg)}
+.refbtns{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.fu-sum{font-size:12px;color:var(--good);margin-top:2px}
+.fu-sum.none{color:var(--warn)}
+.fu-list{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
+.fu-list li{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:start;border-left:3px solid var(--accent);background:var(--soft);border-radius:0 6px 6px 0;padding:6px 10px}
+.fu-list li.k-note{border-left-color:var(--line)} .fu-list li.k-referral{border-left-color:var(--warn)}
+.fu-when{font:500 12px var(--f-mono);white-space:nowrap;color:var(--ink)}
+.fu-who{font-size:12px;color:var(--muted)}
+.fu-x{border:0;background:none;color:var(--muted);font-size:12px;padding:0;cursor:pointer}
+.fu-x:hover{color:var(--bad)}
+.chips{display:flex;flex-wrap:wrap;gap:6px 14px}
+.chips label{display:flex;align-items:center;gap:5px;color:var(--ink);font-size:13px}
+.tag{display:inline-block;font:600 11px var(--f-body);background:var(--soft);color:var(--muted);border-radius:4px;padding:0 6px;margin:1px 3px 1px 0}
+.callout{background:var(--warn-bg);color:var(--ink);border-left:4px solid var(--warn);border-radius:6px;padding:10px 14px}
+.callout b{color:var(--warn)}
+#rDlg{width:min(460px,94vw)}
 @media (max-width:640px){th.hide-sm,td.hide-sm{display:none}}
 </style>
 </head>
@@ -149,7 +169,7 @@ legend{font:700 12px var(--f-body);text-transform:uppercase;letter-spacing:.05em
       <label class="muted"><input type="checkbox" id="fFlag"> Needs action only</label>
     </div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>Date</th><th>Client</th><th>Company</th><th>Rep</th><th class="hide-sm">Source</th><th class="hide-sm">Outcome</th><th>Next action</th><th>Status</th><th class="num">Quote (R)</th></tr></thead>
+      <thead><tr><th>Date</th><th>Client</th><th>Company</th><th>Rep(s)</th><th class="hide-sm">Source</th><th class="hide-sm">Outcome</th><th>Next action</th><th>Follow-ups</th><th>Status</th><th class="num">Quote (R)</th><th></th></tr></thead>
       <tbody id="leadRows"></tbody>
     </table></div>
   </section>
@@ -177,8 +197,8 @@ legend{font:700 12px var(--f-body);text-transform:uppercase;letter-spacing:.05em
   <section data-pane="score" hidden>
     <div class="filters" style="margin-bottom:10px"><label class="muted">Month <select id="sMonth"></select></label></div>
     <div class="grid" id="scoreGrid"></div>
-    <div class="panel" style="margin-top:12px"><h2>Commission on won leads</h2><p class="sub">4% to the rep who closes, 1% to the rep who introduced it, on invoices excl. VAT for 12 months from client start. Paid after the client pays. No log, no commission.</p>
-      <div class="tbl-wrap" style="margin-top:10px"><table><thead><tr><th>Client</th><th>Company</th><th>Closed by</th><th class="num">Value</th><th class="num">4%</th><th>Introduced by</th><th class="num">1%</th><th>Client start</th><th>Valid until</th></tr></thead><tbody id="commRows"></tbody></table></div>
+    <div class="panel" style="margin-top:12px"><h2>Commission on won leads</h2><p class="sub">4% to the rep who closes, 1% to the rep who introduced it, for 12 months from client start. <b>On projects, commission is calculated on the profit only</b>, not on the quote or invoice value. Paid after the client pays. No log, no commission.</p>
+      <div class="tbl-wrap" style="margin-top:10px"><table><thead><tr><th>Client</th><th>Company</th><th>Closed by</th><th class="num">Quote</th><th class="num">Profit</th><th class="num">4%</th><th>Introduced by</th><th class="num">1%</th><th>Client start</th><th>Valid until</th></tr></thead><tbody id="commRows"></tbody></table></div>
     </div>
   </section>
 
@@ -216,6 +236,7 @@ legend{font:700 12px var(--f-body);text-transform:uppercase;letter-spacing:.05em
 
   <!-- RULES -->
   <section data-pane="rules" hidden>
+    <div class="callout" style="margin-bottom:12px"><b>Commission: calculated on profit only.</b> Win a new client for any group company and the rep who closes earns 4%, the rep who introduced it 1%. <b>On projects, the commission is worked out on the project's profit (excl. VAT), not on the quote or invoice value.</b> Fill in the project profit on the lead once it's known, so the Scoreboard shows the right amount. Paid after the client pays. The 4% replaces your normal commission on that job. No log, no commission.</div>
     <div class="grid">
       <div class="panel"><h2>The three rules</h2><ol class="rules">
         <li><b>Ask about all four.</b> Every client gets asked about the other group companies.</li>
@@ -238,21 +259,24 @@ legend{font:700 12px var(--f-body);text-transform:uppercase;letter-spacing:.05em
 
 <dialog id="dlg">
   <form id="leadForm" method="dialog">
-    <div class="dlg-h"><h2 id="dlgTitle">Lead</h2><div class="actions"><button type="button" id="dlgClose">Close</button><button class="primary" type="submit" id="dlgSave">Save</button></div></div>
+    <div class="dlg-h"><h2 id="dlgTitle">Lead</h2><div class="actions"><button type="button" class="danger" id="dlgDel" hidden>Delete lead</button><button type="button" id="dlgClose">Close</button><button class="primary" type="submit" id="dlgSave">Save</button></div></div>
     <div class="dlg-b">
+      <div class="callout" id="refBox" hidden></div>
       <div class="warnbox" id="insWarn" hidden>This looks like an insurer client. Insurer-referred policyholders are not cross-sold.</div>
       <fieldset><legend>Lead</legend><div class="fgrid">
         <label>Date<input type="date" name="date" required></label>
         <label>Company sold for<select name="company_sold_for" data-opts="companies"></select></label>
-        <label>Rep logging it<select name="rep" data-opts="reps"></select></label>
+        <label>Rep working the lead (receives it)<select name="rep" data-opts="reps"></select></label>
         <label>Lead source<select name="lead_source" data-opts="sources"></select></label>
-        <label>Introduced by (rep)<select name="introduced_by" data-opts="repsBlank"></select></label>
+        <label>Introduced by (rep sending it)<select name="introduced_by" data-opts="repsBlank"></select></label>
         <label>Client agreed to the introduction<select name="intro_permission" data-opts="yesno"></select></label>
         <label>Accepted by (receiving rep)<select name="accepted_by" data-opts="repsBlank"></select></label>
         <label>Accepted on<input type="date" name="accepted_date"></label>
         <label>How hot<select name="heat" data-opts="heat"></select></label>
         <label>Industry<select name="industry" data-opts="industries"></select></label>
         <label>Area / suburb<input name="area"></label>
+        <div class="wide" style="grid-column:1/-1"><span class="cell-lbl" style="margin:0 0 4px">Other reps on this lead</span><div class="chips" id="xReps"></div>
+          <div class="actions" style="margin-top:6px"><input id="xRepOther" placeholder="Someone else? Type a name" style="flex:0 1 220px"><button type="button" class="small" id="xRepAdd">Add</button></div></div>
       </div></fieldset>
       <fieldset><legend>Client</legend><div class="fgrid">
         <label>Client<input name="client" required list="clientList"></label>
@@ -276,6 +300,7 @@ legend{font:700 12px var(--f-body);text-transform:uppercase;letter-spacing:.05em
         <label>Data Box report no.<input name="databox_report_no"></label>
         <label>QuickBooks quote no.<input name="qb_quote_no"></label>
         <label>Quote value excl VAT (R)<input name="quote_value" inputmode="decimal"></label>
+        <label>Project profit excl VAT (R)<input name="profit_value" inputmode="decimal" placeholder="Commission is on profit"></label>
         <label>Checked by<select name="checked_by" data-opts="repsBlank"></select></label>
         <label>Checked on<input type="date" name="checked_date"></label>
         <label>Quotes Group approved<input type="date" name="quotes_group_approved_date"></label>
@@ -288,14 +313,22 @@ legend{font:700 12px var(--f-body);text-transform:uppercase;letter-spacing:.05em
         <label class="wide" id="lostWrap">Reason lost<input name="lost_reason" placeholder="Why was it lost? (price, timing, went elsewhere, no need…)"></label>
         <label class="wide">Notes<textarea name="notes"></textarea></label>
       </div><p class="msg" id="commLine"></p></fieldset>
-      <fieldset id="actBox" hidden><legend>Activity</legend>
-        <div class="actions"><input id="actText" placeholder="Add an update (who you spoke to, what was agreed)" style="flex:1 1 300px"><button type="button" id="actAdd">Add update</button></div>
-        <div id="actList"></div>
+      <fieldset id="actBox" hidden><legend>Follow-ups <span id="fuCount" style="text-transform:none;letter-spacing:0"></span></legend>
+        <div class="actions"><input id="actText" placeholder="Follow-up note, e.g. called Thabo, sent quote, call back Tuesday" style="flex:1 1 300px"><button type="button" class="primary" id="actAdd">Log follow-up</button></div>
+        <p class="msg" style="margin:4px 0 0">Each follow-up is stamped with the date, time and your name. Press Enter to log it.</p>
+        <ul class="fu-list" id="actList"></ul>
       </fieldset>
       <p class="msg" id="dlgMsg"></p>
     </div>
   </form>
 </dialog>
+<dialog id="rDlg"><form id="rForm" method="dialog">
+  <div class="dlg-h"><h2 id="rTitle">Decline this lead</h2></div>
+  <div class="dlg-b"><p class="sub" id="rSub" style="margin:0"></p>
+    <label class="fgrid" style="display:grid;gap:4px;font-size:12px;color:var(--muted)">Why are you declining it? (required)<textarea id="rReason" required placeholder="e.g. not a fit for our services, outside our area, client already has a contract"></textarea></label>
+    <p class="msg" id="rMsg"></p>
+    <div class="actions" style="justify-content:flex-end"><button type="button" id="rCancel">Cancel</button><button type="submit" class="primary danger" id="rOk" style="color:#fff;background:var(--bad);border-color:var(--bad)">Decline lead</button></div></div>
+</form></dialog>
 <datalist id="clientList"></datalist>
 <datalist id="ownerOpts"></datalist>
 <datalist id="repOpts"></datalist>
@@ -351,45 +384,65 @@ const norm=s=>String(s||"").toLowerCase().replace(/\(pty\)|pty|ltd|\bcc\b|[^a-z0
 let insSet=new Set();
 const isInsurer=c=>{const n=norm(c);return n.length>3&&insSet.has(n)};
 const pill=s=>`<span class="pill s-${esc((s||"").split(" ")[0])}">${esc(s||"")}</span>`;
+const fmtFull=d=>d?new Date(d).toLocaleString("en-ZA",{weekday:"short",day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"}):"";
+const onLead=(l,n)=>!!n&&(l.rep===n||(l.extra_reps||[]).includes(n));
+const repsText=l=>[l.rep,...(l.extra_reps||[])].filter(Boolean).join(", ");
+const canDelete=l=>isMgr||(l.created_by||"").toLowerCase()===me||l.rep===meName;
+/* a referral waiting for the receiving rep to accept, decline or bank */
+const isReferral=l=>!!l.introduced_by&&l.introduced_by!==l.rep;
+const awaitingResponse=l=>isReferral(l)&&!l.referral_response&&!l.accepted_by&&isOpen(l);
+const isBanked=l=>l.referral_response==="Banked"&&l.status==="On hold";
+const canRespond=l=>isMgr||l.rep===meName;
+const fuOf=id=>acts.filter(a=>a.lead_id===id&&a.kind==="follow_up");
+function fuSum(l){const f=fuOf(l.id);if(f.length)return `<div class="fu-sum">Followed up ${f.length}× · last ${esc(fmtDT(f[0].at))}</div>`;return isOpen(l)||l.status==="Quoted"?`<div class="fu-sum none">No follow-up yet</div>`:""}
+const refBtns=(l,bank=true)=>canRespond(l)?`<div class="refbtns"><button type="button" class="small ok" data-ref="Accepted" data-lid="${l.id}">Accept</button><button type="button" class="small danger" data-ref="Declined" data-lid="${l.id}">Decline</button>${bank?`<button type="button" class="small" data-ref="Banked" data-lid="${l.id}">Bank for later</button>`:""}</div>`:"";
 
 /* ---------- MY DAY ---------- */
 function renderDay(){
   const who=$("dayRep").value;const t=todayStr();
-  const mine=leads.filter(l=>!who||l.rep===who||l.closed_by===who||l.introduced_by===who&&isOpen(l));
+  const mine=leads.filter(l=>!who||onLead(l,who)||l.closed_by===who||l.introduced_by===who&&isOpen(l));
   const card=(title,desc,list,fmt)=>`<div class="panel"><h2>${title} <span class="muted">(${list.length})</span></h2><p class="sub">${desc}</p><div class="list">${list.length?list.slice(0,40).map(fmt).join(""):`<p class="empty">Nothing here.</p>`}</div></div>`;
-  const row=l=>`<div class="item" data-id="${l.id}"><div class="t">${esc(l.client)} <span class="muted">· ${esc(l.company_sold_for||"")} · ${esc(l.rep||"")}</span></div><div>${esc(l.next_action||"No next action")}${l.next_action_date?` <span class="${l.next_action_date<t?"late":"muted"}">(${fmtD(l.next_action_date)})</span>`:""}</div><div>${leadFlags(l).map(f=>`<span class="flag ${f[1]==="w"?"w":""}">${esc(f[0])}</span>`).join("")}</div></div>`;
-  const open=mine.filter(l=>isOpen(l)||l.status==="On hold");
+  const row=l=>`<div class="item" data-id="${l.id}"><div class="t">${esc(l.client)} <span class="muted">· ${esc(l.company_sold_for||"")} · ${esc(repsText(l))}</span></div><div>${esc(l.next_action||"No next action")}${l.next_action_date?` <span class="${l.next_action_date<t?"late":"muted"}">(${fmtD(l.next_action_date)})</span>`:""}</div><div>${leadFlags(l).map(f=>`<span class="flag ${f[1]==="w"?"w":""}">${esc(f[0])}</span>`).join("")}</div></div>`;
+  const refRow=(bank)=>l=>`<div class="item" data-id="${l.id}"><div class="t">${esc(l.client)} <span class="muted">· ${esc(l.company_sold_for||"")}</span></div><div>From <b>${esc(l.introduced_by)}</b> to ${esc(l.rep||"")} · ${fmtD(l.date)}${l.heat?` · ${esc(l.heat)}`:""}</div>${l.notes?`<div class="muted" style="font-size:12px">${esc(String(l.notes).slice(0,140))}</div>`:""}${!bank&&l.referral_response_at?`<div class="muted" style="font-size:12px">Banked by ${esc(l.referral_response_by||"")} on ${fmtD(l.referral_response_at.slice(0,10))}</div>`:""}${refBtns(l,bank)}</div>`;
+  const incoming=leads.filter(l=>awaitingResponse(l)&&(!who||onLead(l,who)));
+  const banked=leads.filter(l=>isBanked(l)&&(!who||onLead(l,who)));
+  const declined=leads.filter(l=>l.referral_response==="Declined"&&(!who||l.introduced_by===who)&&l.referral_response_at&&(Date.now()-new Date(l.referral_response_at))<30*864e5);
+  const decRow=l=>`<div class="item" data-id="${l.id}"><div class="t">${esc(l.client)} <span class="muted">· ${esc(l.company_sold_for||"")}</span></div><div>Declined by <b>${esc(l.referral_response_by||l.rep||"")}</b> · ${fmtDT(l.referral_response_at)}</div><div class="muted">Reason: ${esc(l.decline_reason||"")}</div></div>`;
+  const open=mine.filter(l=>(isOpen(l)||l.status==="On hold")&&!isBanked(l)&&!awaitingResponse(l));
   const overdue=open.filter(l=>l.next_action_date&&l.next_action_date<t);
   const dueToday=open.filter(l=>l.next_action_date===t);
   const sla=open.filter(l=>leadFlags(l).some(f=>/Referral|Visit overdue|Quote overdue/.test(f[0])));
   const quotes=mine.filter(l=>l.status==="Quoted");
   const stale=open.filter(l=>leadFlags(l).some(f=>/14 days|90 days|No next action/.test(f[0])));
   $("dayGrid").innerHTML=
+    card("Leads sent to you","New referrals from the team. Accept, decline (with a reason) or bank it for later. Respond within 1 working day.",incoming,refRow(true))+
     card("Overdue","Next action date has passed.",overdue,row)+
     card("Due today","Next actions dated today.",dueToday,row)+
     card("Response times at risk","Referrals not contacted in 1 working day, visits not done in 3, quotes not sent within 2 of the visit.",sla,row)+
     card("Quotes out","Quotes sent and waiting for an answer.",quotes,row)+
     card("Going cold","No activity in 14 days, no next action set, or nearing the 90-day ownership lapse.",stale,row)+
+    card("Banked leads","Leads you've banked for later. Accept one when you're ready to work it, or decline it with a reason.",banked,refRow(false))+
+    (declined.length?card("Your referrals declined","Leads you sent that were declined in the last 30 days, with the reason.",declined,decRow):"")+
     scoreCard(who||meName,currentMonth());
-  const n=new Set([...overdue,...dueToday,...sla].map(l=>l.id)).size;$("c-day").textContent=n;
+  const n=new Set([...incoming,...overdue,...dueToday,...sla].map(l=>l.id)).size;$("c-day").textContent=n;
 }
 /* ---------- LEADS ---------- */
 function renderLeads(){
   const q=$("q").value.toLowerCase(),co=$("fCo").value,rp=$("fRep").value,st=$("fStatus").value,fl=$("fFlag").checked;
-  const rows=leads.filter(l=>(!co||l.company_sold_for===co)&&(!rp||l.rep===rp)&&(!st||l.status===st)&&(!fl||leadFlags(l).some(f=>f[1]==="b"))&&(!q||[l.client,l.contact_person,l.area,l.notes,l.next_action,l.email,l.phone].join(" ").toLowerCase().includes(q)));
+  const rows=leads.filter(l=>(!co||l.company_sold_for===co)&&(!rp||onLead(l,rp))&&(!st||l.status===st)&&(!fl||leadFlags(l).some(f=>f[1]==="b"))&&(!q||[l.client,l.contact_person,l.area,l.notes,l.next_action,l.email,l.phone,...(l.extra_reps||[])].join(" ").toLowerCase().includes(q)));
   const t=todayStr();
-  $("leadRows").innerHTML=rows.map(l=>{const fl=leadFlags(l).filter(f=>f[1]==="b");return `<tr data-id="${l.id}"><td style="white-space:nowrap">${fmtD(l.date)}</td><td><b>${esc(l.client)}</b>${l.contact_person?`<div class="muted">${esc(l.contact_person)}</div>`:""}${fl.map(f=>`<div><span class="flag">${esc(f[0])}</span></div>`).join("")}</td><td>${esc(l.company_sold_for||"")}</td><td>${esc(l.rep||"")}</td><td class="hide-sm">${esc(l.lead_source||"")}${l.introduced_by?`<div class="muted">via ${esc(l.introduced_by)}</div>`:""}</td><td class="hide-sm">${esc(l.outcome||"")}</td><td>${esc(l.next_action||"")}${l.next_action_date?`<div class="${l.next_action_date<t&&(isOpen(l)||l.status==="On hold")?"late":"muted"}">${fmtD(l.next_action_date)}</div>`:""}</td><td>${pill(l.status)}</td><td class="num">${money(l.quote_value)}</td></tr>`}).join("")||`<tr><td colspan="9" class="empty">No leads yet. Use “Log a lead or call”.</td></tr>`;
+  $("leadRows").innerHTML=rows.map(l=>{const fl=leadFlags(l).filter(f=>f[1]==="b");return `<tr data-id="${l.id}"><td style="white-space:nowrap">${fmtD(l.date)}</td><td><b>${esc(l.client)}</b>${l.contact_person?`<div class="muted">${esc(l.contact_person)}</div>`:""}${fl.map(f=>`<div><span class="flag">${esc(f[0])}</span></div>`).join("")}</td><td>${esc(l.company_sold_for||"")}</td><td>${esc(l.rep||"")}${(l.extra_reps||[]).length?`<div class="muted">+ ${esc(l.extra_reps.join(", "))}</div>`:""}</td><td class="hide-sm">${esc(l.lead_source||"")}${l.introduced_by?`<div class="muted">via ${esc(l.introduced_by)}</div>`:""}</td><td class="hide-sm">${esc(l.outcome||"")}</td><td>${esc(l.next_action||"")}${l.next_action_date?`<div class="${l.next_action_date<t&&(isOpen(l)||l.status==="On hold")?"late":"muted"}">${fmtD(l.next_action_date)}</div>`:""}</td><td>${fuSum(l)}<button type="button" class="linkbtn" data-fu="${l.id}">+ Follow-up</button></td><td>${pill(l.status)}${l.referral_response?`<div class="muted" style="font-size:11px">${esc(l.referral_response==="Banked"?"Banked":l.referral_response==="Declined"?"Declined":"Accepted")} by ${esc(l.referral_response_by||"")}</div>`:awaitingResponse(l)?`<div><span class="flag w">Waiting for ${esc(l.rep||"")}</span></div>`:""}</td><td class="num">${money(l.quote_value)}</td><td>${canDelete(l)?`<button type="button" class="small danger" data-del="${l.id}" title="Delete this lead">Delete</button>`:""}</td></tr>`}).join("")||`<tr><td colspan="11" class="empty">No leads yet. Use “Log a lead or call”.</td></tr>`;
   $("c-leads").textContent=leads.filter(l=>isOpen(l)).length;
 }
 /* ---------- TARGETS ---------- */
 function renderTargets(){
   const lists=[...new Set(targets.map(t=>t.list_name))].sort();
-  const sel=$("tList");if(sel.options.length!==lists.length){const cur=sel.value;sel.innerHTML=lists.map(x=>`<option>${esc(x)}</option>`).join("");if(cur&&lists.includes(cur))sel.value=cur}
+  const sel=$("tList");if(sel.options.length!==lists.length+1){const cur=sel.value;sel.innerHTML=`<option value="">All lists</option>`+lists.map(x=>`<option>${esc(x)}</option>`).join("");if(cur&&lists.includes(cur))sel.value=cur}
   const ln=sel.value,pr=$("tPri").value,st=$("tStatus").value,q=$("tq").value.toLowerCase(),mine=$("tMine").checked;
-  const rows=targets.filter(t=>t.list_name===ln&&(!pr||t.priority===pr)&&(!st||t.status===st)&&(!mine||[t.suggested_rep,t.relationship_owner,t.claimed_by].join(" ").includes(meName))&&(!q||[t.client,t.area,t.sector,t.relationship_owner,t.suggested_rep,t.why_fits,t.notes].join(" ").toLowerCase().includes(q))).sort((a,b)=>(a.rank??1e9)-(b.rank??1e9));
-  $("tInfo").textContent=targets.length?`${rows.length} of ${targets.filter(t=>t.list_name===ln).length} on this list. “Start lead” logs it on the tracker and marks the target as yours.`:"The target lists haven't been loaded yet. A manager can load them under Sales manager → Manager settings.";
+  const rows=targets.filter(t=>(!ln||t.list_name===ln)&&(!pr||t.priority===pr)&&(!st||t.status===st)&&(!mine||[t.suggested_rep,t.relationship_owner,t.claimed_by].join(" ").includes(meName))&&(!q||[t.client,t.area,t.sector,t.relationship_owner,t.suggested_rep,t.why_fits,t.notes].join(" ").toLowerCase().includes(q))).sort((a,b)=>ln?(a.rank??1e9)-(b.rank??1e9):(a.priority||"Z").localeCompare(b.priority||"Z")||a.list_name.localeCompare(b.list_name)||(a.rank??1e9)-(b.rank??1e9));
+  $("tInfo").textContent=targets.length?`${rows.length} of ${ln?targets.filter(t=>t.list_name===ln).length:targets.length} ${ln?"on this list":"across all lists"}. “Start lead” logs it on the tracker and marks the target as yours.`:"The target lists haven't been loaded yet. A manager can load them under Sales manager → Manager settings.";
   const shown=rows.slice(0,400);
-  $("tRows").innerHTML=shown.map(t=>`<tr data-tid="${t.id}"><td class="num">${t.rank??""}</td><td><b>${esc(t.client)}</b>${t.area?`<div class="muted">${esc(t.area)}</div>`:""}${isInsurer(t.client)?`<div><span class="flag">Insurer</span></div>`:""}</td><td>${esc(t.priority||"")}</td><td class="hide-sm">${esc(t.sector||"")}</td><td class="hide-sm" style="max-width:280px">${esc(t.why_fits||t.notes||"")}</td><td class="num hide-sm">${money(t.group_spend)}</td><td><span class="cell-lbl" style="margin-top:0">Owner</span><input class="cell-edit" list="ownerOpts" data-tedit="relationship_owner" data-tid="${t.id}" value="${esc(t.relationship_owner||"")}" placeholder="Company or rep" title="Owner: company (Leakfind, PipeRenu, DC24, Climacore, Electricore) or the rep who claimed it"><span class="cell-lbl">Rep</span><input class="cell-edit" list="repOpts" data-tedit="suggested_rep" data-tid="${t.id}" value="${esc(t.suggested_rep||"")}" placeholder="Rep" title="Rep working this client">${t.owner_changed_by?`<div class="muted" style="font-size:11px">Changed by ${esc(t.owner_changed_by)} · ${fmtDT(t.owner_changed_at)}</div>`:""}${t.claimed_by?`<div class="muted">taken by ${esc(t.claimed_by)}</div>`:""}</td><td class="hide-sm" style="max-width:220px;overflow-wrap:anywhere">${esc([t.contact,t.phone,t.email].filter(Boolean).join(" · "))}</td><td><select class="tst" data-tid="${t.id}">${["Not started","In progress","Converted to lead","Do not pursue"].map(o=>`<option ${o===t.status?"selected":""}>${o}</option>`).join("")}</select></td><td>${t.lead_id?`<button class="small" data-open="${t.lead_id}" type="button">Open lead</button>`:`<button class="small primary" data-start="${t.id}" type="button">Start lead</button>`}</td></tr>`).join("")+(rows.length>400?`<tr><td colspan="10" class="empty">Showing the first 400. Narrow it down with the filters.</td></tr>`:"");
+  $("tRows").innerHTML=shown.map(t=>`<tr data-tid="${t.id}"><td class="num">${t.rank??""}</td><td><b>${esc(t.client)}</b>${t.area?`<div class="muted">${esc(t.area)}</div>`:""}${!ln?`<div><span class="tag">${esc(t.list_name)}</span></div>`:""}${isInsurer(t.client)?`<div><span class="flag">Insurer</span></div>`:""}</td><td>${esc(t.priority||"")}</td><td class="hide-sm">${esc(t.sector||"")}</td><td class="hide-sm" style="max-width:280px">${esc(t.why_fits||t.notes||"")}</td><td class="num hide-sm">${money(t.group_spend)}</td><td><span class="cell-lbl" style="margin-top:0">Owner</span><input class="cell-edit" list="ownerOpts" data-tedit="relationship_owner" data-tid="${t.id}" value="${esc(t.relationship_owner||"")}" placeholder="Company or rep" title="Owner: company (Leakfind, PipeRenu, DC24, Climacore, Electricore) or the rep who claimed it"><span class="cell-lbl">Rep</span><input class="cell-edit" list="repOpts" data-tedit="suggested_rep" data-tid="${t.id}" value="${esc(t.suggested_rep||"")}" placeholder="Rep" title="Rep working this client">${t.owner_changed_by?`<div class="muted" style="font-size:11px">Changed by ${esc(t.owner_changed_by)} · ${fmtDT(t.owner_changed_at)}</div>`:""}${t.claimed_by?`<div class="muted">taken by ${esc(t.claimed_by)}</div>`:""}</td><td class="hide-sm" style="max-width:220px;overflow-wrap:anywhere">${esc([t.contact,t.phone,t.email].filter(Boolean).join(" · "))}</td><td><select class="tst" data-tid="${t.id}">${["Not started","In progress","Converted to lead","Do not pursue"].map(o=>`<option ${o===t.status?"selected":""}>${o}</option>`).join("")}</select></td><td>${t.lead_id?`<button class="small" data-open="${t.lead_id}" type="button">Open lead</button>`:`<button class="small primary" data-start="${t.id}" type="button">Start lead</button>`}</td></tr>`).join("")+(rows.length>400?`<tr><td colspan="10" class="empty">Showing the first 400. Narrow it down with the filters.</td></tr>`:"");
 }
 /* ---------- SCOREBOARD ---------- */
 const currentMonth=()=>todayStr().slice(0,7);
@@ -425,7 +478,7 @@ function renderScore(){
   const sel=$("sMonth");const cur=sel.value||currentMonth();sel.innerHTML=months.map(m=>`<option ${m===cur?"selected":""}>${m}</option>`).join("");
   $("scoreGrid").innerHTML=team.filter(t=>t.role==="rep"&&t.active).map(t=>scoreCard(t.name,sel.value)).join("");
   const won=leads.filter(l=>l.status==="Won");
-  $("commRows").innerHTML=won.map(l=>`<tr data-id="${l.id}"><td>${esc(l.client)}</td><td>${esc(l.company_sold_for||"")}</td><td>${esc(l.closed_by||l.rep||"")}</td><td class="num">${money(l.quote_value)}</td><td class="num">${money(l.closer_commission)}</td><td>${esc(l.introduced_by||"")}</td><td class="num">${money(l.introducer_commission)}</td><td>${fmtD(l.client_start_date)}</td><td>${fmtD(l.commission_valid_until)}</td></tr>`).join("")||`<tr><td colspan="9" class="empty">No won leads yet.</td></tr>`;
+  $("commRows").innerHTML=won.map(l=>`<tr data-id="${l.id}"><td>${esc(l.client)}</td><td>${esc(l.company_sold_for||"")}</td><td>${esc(l.closed_by||l.rep||"")}</td><td class="num">${money(l.quote_value)}</td><td class="num">${l.profit_value!=null?money(l.profit_value):`<span class="flag w" title="Commission is showing on the quote value until the profit is filled in">Add profit</span>`}</td><td class="num">${money(l.closer_commission)}</td><td>${esc(l.introduced_by||"")}</td><td class="num">${money(l.introducer_commission)}</td><td>${fmtD(l.client_start_date)}</td><td>${fmtD(l.commission_valid_until)}</td></tr>`).join("")||`<tr><td colspan="10" class="empty">No won leads yet.</td></tr>`;
 }
 /* ---------- AI MANAGER ---------- */
 function renderBriefs(){
@@ -455,19 +508,43 @@ function openLead(l,prefill){
   const d=l||Object.assign({date:todayStr(),rep:isMgr&&!reps().includes(meName)?"":meName,status:"New referral",company_sold_for:(team.find(t=>t.name===meName)||{}).home_company||"DC24"},pf);
   for(const el of F()){if(!el.name)continue;const v=d[el.name];if(el.type==="checkbox")el.checked=!!v;else el.value=v??""}
   $("dlgTitle").textContent=l?l.client:"Log a lead or call";
-  $("actBox").hidden=!l;$("dlgMsg").textContent="";
+  $("actBox").hidden=!l;$("dlgMsg").textContent="";$("actText").value="";
+  $("dlgDel").hidden=!(l&&canDelete(l));
+  xReps=[...((l&&l.extra_reps)||[])];renderXReps();
+  refBoxRender(l);
   insCheck();lostCheck();commLine(d);
   if(l)renderActs();
   $("dlg").showModal();
 }
+let xReps=[];
+function renderXReps(){
+  const main=F().rep.value;const names=[...new Set([...reps(),...xReps])].filter(n=>n!==main);
+  $("xReps").innerHTML=names.map(n=>`<label><input type="checkbox" data-xrep="${esc(n)}" ${xReps.includes(n)?"checked":""}> ${esc(n)}</label>`).join("")||`<span class="muted">No other reps.</span>`;
+}
+$("xReps").addEventListener("change",e=>{const n=e.target.dataset.xrep;if(!n)return;xReps=e.target.checked?[...new Set([...xReps,n])]:xReps.filter(x=>x!==n)});
+const addOther=()=>{const n=$("xRepOther").value.trim();if(!n)return;xReps=[...new Set([...xReps,n])];$("xRepOther").value="";renderXReps()};
+$("xRepAdd").addEventListener("click",addOther);
+$("xRepOther").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();addOther()}});
+function refBoxRender(l){
+  const b=$("refBox");if(!l||!isReferral(l)){b.hidden=true;return}
+  b.hidden=false;
+  if(awaitingResponse(l))b.innerHTML=`<b>Lead sent by ${esc(l.introduced_by)} to ${esc(l.rep||"")}.</b> ${canRespond(l)?"Accept it, decline it (with a reason) or bank it for later.":"Waiting for "+esc(l.rep||"")+" to respond."}${refBtns(l)}`;
+  else if(isBanked(l))b.innerHTML=`<b>Banked</b> by ${esc(l.referral_response_by||"")} on ${esc(fmtFull(l.referral_response_at))}. Sent by ${esc(l.introduced_by)}.${refBtns(l,false)}`;
+  else if(l.referral_response==="Declined")b.innerHTML=`<b>Declined</b> by ${esc(l.referral_response_by||"")} on ${esc(fmtFull(l.referral_response_at))}. Reason: ${esc(l.decline_reason||"")}`;
+  else if(l.referral_response==="Accepted"||l.accepted_by)b.innerHTML=`<b>Accepted</b> by ${esc(l.referral_response_by||l.accepted_by||"")}${l.referral_response_at?" on "+esc(fmtFull(l.referral_response_at)):l.accepted_date?" on "+esc(fmtD(l.accepted_date)):""}. Sent by ${esc(l.introduced_by)}.`;
+  else b.hidden=true;
+}
 function insCheck(){$("insWarn").hidden=!isInsurer(F().client.value)}
 function commLine(d){
-  const v=Number(String(F().quote_value.value).replace(/[^\d.]/g,""))||0;
-  $("commLine").textContent=F().status.value==="Won"&&v?`Commission: ${F().closed_by.value||F().rep.value||"closer"} R${money(v*0.04)} (4%)${F().introduced_by.value&&F().introduced_by.value!==F().closed_by.value?`, ${F().introduced_by.value} R${money(v*0.01)} (1%)`:""}. Paid after the client pays.`:"";
+  const num=x=>Number(String(x).replace(/[^\d.]/g,""))||0;
+  const p=num(F().profit_value.value),q=num(F().quote_value.value),v=p||q;
+  $("commLine").textContent=F().status.value==="Won"&&v?`Commission${p?" on profit":" on the quote value until the project profit is filled in"}: ${F().closed_by.value||F().rep.value||"closer"} R${money(v*0.04)} (4%)${F().introduced_by.value&&F().introduced_by.value!==F().closed_by.value?`, ${F().introduced_by.value} R${money(v*0.01)} (1%)`:""}. Paid after the client pays.`:"";
 }
 function renderActs(){
   const list=acts.filter(a=>a.lead_id===editing);
-  $("actList").innerHTML=list.map(a=>`<div class="note"><div class="by">${esc((team.find(t=>t.email===a.by_email)||{}).name||a.by_email||"")} · ${new Date(a.at).toLocaleString("en-ZA",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</div>${esc(a.text)}</div>`).join("")||`<p class="empty">No updates yet.</p>`;
+  const n=list.filter(a=>a.kind==="follow_up").length;$("fuCount").textContent=n?`· ${n} logged`:"";
+  $("actList").innerHTML=list.map(a=>{const who=(team.find(t=>t.email.toLowerCase()===(a.by_email||"").toLowerCase())||{}).name||a.by_email||"";const mineA=isMgr||(a.by_email||"").toLowerCase()===me;
+    return `<li class="k-${esc(a.kind||"note")}"><span class="fu-when">${esc(fmtFull(a.at))}</span><span>${esc(a.text)} <span class="fu-who">· ${esc(who)}${a.kind==="referral"?" · referral":a.kind==="note"?" · update":""}</span></span>${mineA&&a.kind!=="referral"?`<button type="button" class="fu-x" data-fux="${a.id}">Remove</button>`:"<span></span>"}</li>`}).join("")||`<li style="background:none;border:0;padding:0" class="empty">No follow-ups yet.</li>`;
 }
 function lostCheck(){$("lostWrap").hidden=F().status.value!=="Lost"}
 $("leadForm").addEventListener("input",e=>{if(e.target.name==="client")insCheck();lostCheck();commLine()});
@@ -476,6 +553,8 @@ $("leadForm").addEventListener("submit",async e=>{
   e.preventDefault();
   const row={};for(const el of F()){if(!el.name)continue;row[el.name]=el.type==="checkbox"?el.checked:(el.value.trim()===""?null:el.value.trim())}
   if(row.quote_value!=null){row.quote_value=Number(String(row.quote_value).replace(/[^\d.]/g,""))||null}
+  if(row.profit_value!=null){row.profit_value=Number(String(row.profit_value).replace(/[^\d.-]/g,""))||null}
+  row.extra_reps=xReps.filter(n=>n&&n!==row.rep);
   if(row.status==="Lost"&&!row.lost_reason){$("dlgMsg").textContent="Please fill in the reason it was lost before saving.";F().lost_reason.focus();return}
   if(row.status!=="Lost")row.lost_reason=null;
   if(row.introduced_by&&row.introduced_by!==row.rep&&!row.intro_permission){$("dlgMsg").textContent="This is a referral: please say whether the client agreed to the introduction.";F().intro_permission.focus();return}
@@ -493,9 +572,48 @@ $("leadForm").addEventListener("submit",async e=>{
   if(pendingTarget&&res.data){await sb.from("sf_targets").update({status:"Converted to lead",lead_id:res.data.id,claimed_by:meName,claimed_at:new Date().toISOString()}).eq("id",pendingTarget);pendingTarget=null}
   $("dlg").close();loadLeads();loadTargets();
 });
+$("actText").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();$("actAdd").click()}});
+$("actList").addEventListener("click",async e=>{const x=e.target.closest("[data-fux]");if(!x)return;if(!confirm("Remove this follow-up?"))return;
+  const {error}=await sb.from("sf_activity").delete().eq("id",x.dataset.fux);if(error){$("dlgMsg").textContent="Couldn't remove it: "+error.message;return}await loadActs();renderActs()});
+$("xReps").closest("fieldset").addEventListener("change",e=>{if(e.target.name==="rep")renderXReps()});
+/* ---------- DELETE ---------- */
+async function deleteLead(id){
+  const l=leads.find(x=>x.id===id);if(!l)return;
+  if(!confirm(`Delete this lead for ${l.client} (${fmtD(l.date)}, ${l.rep||""})?\n\nIt disappears from the log for everyone, with its follow-ups. A manager can still restore it.`))return;
+  const {data,error}=await sb.from("sf_leads").delete().eq("id",id).select("id");
+  if(error||!data||!data.length){alertMsg("Couldn't delete that lead. Only the rep who logged it, the rep on it, or a manager can delete it.");return}
+  leads=leads.filter(x=>x.id!==id);if(editing===id)$("dlg").close();render();alertMsg(`Deleted the lead for ${l.client}.`);
+  await sb.from("sf_targets").update({lead_id:null,status:"Not started",claimed_by:null}).eq("lead_id",id);
+}
+$("dlgDel").addEventListener("click",()=>{if(editing)deleteLead(editing)});
+/* ---------- ACCEPT / DECLINE / BANK ---------- */
+let rLead=null;
+async function respond(id,resp,reason){
+  const l=leads.find(x=>x.id===id);if(!l)return;
+  const now=new Date().toISOString();
+  const upd={referral_response:resp,referral_response_by:meName,referral_response_at:now};
+  if(resp==="Accepted"){Object.assign(upd,{accepted_by:l.rep||meName,accepted_date:todayStr(),decline_reason:null});if(["New referral","On hold"].includes(l.status))upd.status="Accepted"}
+  if(resp==="Banked"){upd.status="On hold";upd.decline_reason=null}
+  if(resp==="Declined"){Object.assign(upd,{status:"Lost",decline_reason:reason,lost_reason:"Referral declined: "+reason})}
+  const {error}=await sb.from("sf_leads").update(upd).eq("id",id);
+  if(error){alertMsg("Couldn't save that: "+error.message);return false}
+  await sb.from("sf_activity").insert({lead_id:id,kind:"referral",text:resp==="Declined"?`Declined the lead. Reason: ${reason}`:resp==="Banked"?"Banked the lead for later.":"Accepted the lead."});
+  Object.assign(l,upd);await loadActs();render();if($("dlg").open&&editing===id){refBoxRender(l);renderActs();F().status.value=l.status}
+  alertMsg(`${l.client}: ${resp==="Banked"?"banked":resp.toLowerCase()}.${resp==="Declined"?" "+l.introduced_by+" can see the reason on My day.":""}`);return true;
+}
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-ref]");if(b){e.stopPropagation();const id=b.dataset.lid,r=b.dataset.ref;
+    if(r==="Declined"){rLead=id;const l=leads.find(x=>x.id===id);$("rSub").textContent=`${l.client} · sent by ${l.introduced_by}. They'll see your reason.`;$("rReason").value="";$("rMsg").textContent="";$("rDlg").showModal();$("rReason").focus()}
+    else respond(id,r);return}
+  const d=e.target.closest("[data-del]");if(d){e.stopPropagation();deleteLead(d.dataset.del);return}
+  const f=e.target.closest("[data-fu]");if(f){e.stopPropagation();const l=leads.find(x=>x.id===f.dataset.fu);if(l){openLead(l);setTimeout(()=>{$("actBox").scrollIntoView({block:"center"});$("actText").focus()},60)}}
+},true);
+$("rCancel").addEventListener("click",()=>$("rDlg").close());
+$("rForm").addEventListener("submit",async e=>{e.preventDefault();const r=$("rReason").value.trim();if(r.length<3){$("rMsg").textContent="Please give a reason.";return}
+  $("rMsg").textContent="Saving…";if(await respond(rLead,"Declined",r))$("rDlg").close();else $("rMsg").textContent="Couldn't save. Try again."});
 $("actAdd").addEventListener("click",async()=>{
   const t=$("actText").value.trim();if(!t||!editing)return;
-  const {error}=await sb.from("sf_activity").insert({lead_id:editing,text:t});
+  const {error}=await sb.from("sf_activity").insert({lead_id:editing,text:t,kind:"follow_up"});
   if(error){$("dlgMsg").textContent="Couldn't add: "+error.message;return}
   $("actText").value="";await loadActs();renderActs();
 });
@@ -522,8 +640,8 @@ $("newLead").addEventListener("click",()=>{pendingTarget=null;openLead(null)});
 document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>{tab=b.dataset.tab;document.querySelectorAll(".tabs button").forEach(x=>x.setAttribute("aria-selected",x===b));document.querySelectorAll("[data-pane]").forEach(p=>p.hidden=p.dataset.pane!==tab);try{localStorage.setItem("sf-tab",tab)}catch(_){}render()}));
 ["q","fCo","fRep","fStatus","fFlag","tList","tPri","tStatus","tq","tMine","sMonth","dayRep"].forEach(id=>$(id).addEventListener("input",render));
 $("csvBtn").addEventListener("click",()=>{
-  const cols=["date","company_sold_for","rep","lead_source","introduced_by","area","industry","client","contact_person","phone","email","site_address","heat","call_type","outcome","next_action","next_action_date","first_contact_date","visit_date","site_assessment_done","databox_loaded","details_verified","databox_report_no","qb_quote_no","quote_value","checked_by","checked_date","quotes_group_approved_date","sent_to_client_date","status","closed_by","client_start_date","commission_valid_until","closer_commission","introducer_commission","intro_permission","accepted_by","accepted_date","lost_reason","notes"];
-  const csv=[cols.join(","),...leads.map(l=>cols.map(c=>{const v=l[c]??"";return /[",\n]/.test(String(v))?`"${String(v).replace(/"/g,'""')}"`:v}).join(","))].join("\n");
+  const cols=["date","company_sold_for","rep","lead_source","introduced_by","area","industry","client","contact_person","phone","email","site_address","heat","call_type","outcome","next_action","next_action_date","first_contact_date","visit_date","site_assessment_done","databox_loaded","details_verified","databox_report_no","qb_quote_no","quote_value","checked_by","checked_date","quotes_group_approved_date","sent_to_client_date","status","closed_by","client_start_date","commission_valid_until","closer_commission","introducer_commission","intro_permission","accepted_by","accepted_date","referral_response","referral_response_by","referral_response_at","decline_reason","extra_reps","profit_value","lost_reason","notes"];
+  const csv=[cols.join(","),...leads.map(l=>cols.map(c=>{const v=Array.isArray(l[c])?l[c].join("; "):l[c]??"";return /[",\n]/.test(String(v))?`"${String(v).replace(/"/g,'""')}"`:v}).join(","))].join("\n");
   const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["﻿"+csv],{type:"text/csv"}));a.download="sales-force-"+todayStr()+".csv";document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),500);
 });
 /* ---------- MANAGER ---------- */
