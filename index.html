@@ -101,7 +101,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .monthsel{font:600 13px var(--f-body);padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
 input[type=search]{flex:1 1 200px;min-width:0;font:14px var(--f-body);padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
 .tablebox{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:8px}
-table{border-collapse:collapse;width:100%;min-width:1040px}
+table{border-collapse:collapse;width:100%;min-width:1140px}
 th{font:600 11px var(--f-body);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:left;padding:10px 10px;border-bottom:1px solid var(--line);background:var(--soft);position:sticky;top:0;white-space:nowrap}
 td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
 tr:last-child td{border-bottom:0}
@@ -188,6 +188,8 @@ form.add .row{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end;fle
 .msg{font-size:13px;color:var(--muted)}
 .msg.err{color:var(--lost)}
 .foot{font-size:12px;color:var(--muted)}
+td.tick{text-align:center}
+input.pay{width:18px;height:18px;accent-color:var(--won);cursor:pointer;margin:2px 0 0;vertical-align:middle}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
@@ -260,12 +262,12 @@ form.add .row{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end;fle
 
   <div class="tablebox">
     <table>
-      <thead><tr><th>Date</th><th>Name / what they need</th><th>Contact</th><th>Suburb</th><th>Job</th><th>Source</th><th>Status</th><th style="text-align:right">Quoted (R)</th><th>Invoiced</th><th>Paid</th></tr></thead>
-      <tbody id="rows"><tr><td colspan="10" class="empty">Leads appear here once the log loads. New website enquiries are added every morning at 7:45.</td></tr></tbody>
+      <thead><tr><th>Date</th><th>Name / what they need</th><th>Contact</th><th>Suburb</th><th>Job</th><th>Source</th><th>Status</th><th style="text-align:right">Quoted (R)</th><th>Invoiced</th><th>Deposit paid</th><th>Final payment</th></tr></thead>
+      <tbody id="rows"><tr><td colspan="11" class="empty">Leads appear here once the log loads. New website enquiries are added every morning at 7:45.</td></tr></tbody>
     </table>
     <datalist id="noteFor"></datalist>
   </div>
-  <p class="foot">Rows shaded yellow are invoiced but not paid. Change a status, price or payment straight in the table; it saves for everyone who opens this page.</p>
+  <p class="foot">Tick Deposit paid when the deposit comes in and Final payment once the job is paid in full. Rows shaded yellow are invoiced but not fully paid. Change a status, price or payment straight in the table; it saves for everyone who opens this page.</p>
 </div>
 
 <script>
@@ -378,8 +380,8 @@ function render(){
   stats();ads();fillNoteFor();
   const q=query.toLowerCase();
   const rows=leads.filter(l=>inMonth(l)&&(filter==="All"||l.status===filter)&&(!q||[l.name,l.suburb,l.email,l.need,l.phone,l.source,l.notes,...fuList(l).map(f=>f.comment),...noteList(l).map(n=>(n.text||"")+" "+(n.for||"")),...docsFor(l._id).map(d=>d.number||"")].join(" ").toLowerCase().includes(q)));
-  if(!leads.length){$("rows").innerHTML=`<tr><td colspan="10" class="empty">No leads yet. Use “Add a lead”, or wait for the 7:45 morning check of the website form.</td></tr>`;return}
-  if(!rows.length){$("rows").innerHTML=`<tr><td colspan="10" class="empty">No leads match this filter.</td></tr>`;return}
+  if(!leads.length){$("rows").innerHTML=`<tr><td colspan="11" class="empty">No leads yet. Use “Add a lead”, or wait for the 7:45 morning check of the website form.</td></tr>`;return}
+  if(!rows.length){$("rows").innerHTML=`<tr><td colspan="11" class="empty">No leads match this filter.</td></tr>`;return}
   const fresh=new Date(Date.now()-1*864e5).toISOString();
   const uids=new Set();
   $("rows").innerHTML=rows.map(l=>{
@@ -394,7 +396,7 @@ function render(){
     const qsec=`<div class="qdocs"><div class="lab"><span>Quotes &amp; invoices</span><span>${qd.length?qd.length+" in the Quote Builder":""}</span></div>
       ${qd.length?`<ul>${qd.map(d=>`<li>${docLink(d,esc(docLabel(d))+" ↗")}<span class="qst">${esc(d.doc_date||"")}</span><span class="qst">${esc(docState(d))}</span><span class="qtot">R ${amt(d.total)}</span></li>`).join("")}</ul>`:`<div class="none">No quotes in the Quote Builder for this lead yet.</div>`}
       <a class="qnew" href="${QB}?lead=${encodeURIComponent(l._id)}" target="_blank" rel="noopener">+ New quote for this lead ↗</a></div>`;
-    const det=`<tr class="detail${owed?" owed":""}${l.status==="Spam"?" spam":""}" data-id="${lid}"><td colspan="10"><div class="det">
+    const det=`<tr class="detail${owed?" owed":""}${l.status==="Spam"?" spam":""}" data-id="${lid}"><td colspan="11"><div class="det">
       ${qsec}
       ${rtBar(lid)}
       <div><div class="lab"><span id="nl-${lid}">Notes</span><span>${nts.length?nts.length+" note"+(nts.length===1?"":"s"):""}</span></div>
@@ -417,7 +419,8 @@ function render(){
       <td><select class="cell status" data-k="status" data-s="${esc(l.status)}" aria-label="Status">${opt(STATUSES,l.status)}</select></td>
       <td style="text-align:right"><input class="cell money" data-k="quoted" inputmode="decimal" value="${l.quoted!=null&&l.quoted!==""?esc(amt(l.quoted)):""}" aria-label="Quoted amount in rand">${qlinks}</td>
       <td><select class="cell" data-k="invoiced" aria-label="Invoiced">${opt(["Yes","No"],l.invoiced,true)}</select></td>
-      <td><select class="cell" data-k="paid" aria-label="Paid">${opt(["Yes","No"],l.paid,true)}</select></td>
+      <td class="tick"><input type="checkbox" class="pay" data-k="deposit_paid" aria-label="Deposit paid" title="Deposit paid"${l.deposit_paid==="Yes"?" checked":""}></td>
+      <td class="tick"><input type="checkbox" class="pay" data-k="paid" aria-label="Final payment received" title="Final payment received"${l.paid==="Yes"?" checked":""}></td>
     </tr>${det}`}).join("");
   document.querySelectorAll("[data-uid]").forEach(el=>{const e=(el.dataset.uid||"").toLowerCase();el.textContent=teamNames[e]||e.split("@")[0]||"Someone"});
 }
@@ -521,7 +524,7 @@ $("rows").addEventListener("change",e=>{
   if(el.dataset.futick){if(el.checked)logFollowUp(tr);return}
   if(el.dataset.notes){const id=tr.dataset.id;save(id,{notes:el.value}).catch(()=>{}).then(()=>{delete drafts[el.id];const s=$("ns-"+id);if(s){s.textContent="Saved";setTimeout(()=>{if(s)s.textContent=""},2000)}});return}
   if(!el.dataset.k)return;
-  let v=el.value;
+  let v=el.type==="checkbox"?(el.checked?"Yes":""):el.value;
   if(el.dataset.k==="quoted"){let t=v.replace(/[^\d.,]/g,"");if(t.includes(",")&&!t.includes(".")&&/,\d{1,2}$/.test(t))t=t.replace(/,(?=\d{1,2}$)/,".");t=t.replace(/,/g,"");const n=parseFloat(t);v=isNaN(n)?null:Math.round(n*100)/100}
   if(el.dataset.k==="status")el.dataset.s=v;
   save(tr.dataset.id,{[el.dataset.k]:v}).then(()=>safeRender()).catch(()=>{});
@@ -560,8 +563,8 @@ $("addForm").addEventListener("submit",async e=>{
   if(error){$("addMsg").textContent="Couldn't save. Try again.";$("addMsg").className="msg err"}else{$("addForm").reset();$("addForm").hidden=true;await loadLeads()}
 });
 function csv(){
-  const H=["Date","Name or business","Phone","Email","Suburb","Home or business","Type of work","Source","What they need","Status","Quoted (R)","Invoiced","Paid","Notes","Follow-ups"];
-  const K=["date","name","phone","email","suburb","kind","work","source","need","status","quoted","invoiced","paid"];
+  const H=["Date","Name or business","Phone","Email","Suburb","Home or business","Type of work","Source","What they need","Status","Quoted (R)","Invoiced","Deposit paid","Final payment received","Notes","Follow-ups"];
+  const K=["date","name","phone","email","suburb","kind","work","source","need","status","quoted","invoiced","deposit_paid","paid"];
   const q=s=>{s=s==null?"":String(s);return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
   return [H.join(","),...leads.filter(inMonth).map(l=>[...K.map(k=>q(l[k])),q(noteText(l)),q(fuList(l).map(f=>fmt(f.at)+(f.comment?": "+f.comment:"")).join(" | "))].join(","))].join("\n");
 }
@@ -575,7 +578,7 @@ function syncLine(){
 const SUPABASE_URL="https://gjrmxwwujudgxkqkpyby.supabase.co";
 const SUPABASE_KEY="sb_publishable_EyqmNpJcErSFmE2BO9znAA_UFNmOlxX";
 function mapLead(r){
-  const l={_id:r.id,date:r.date,name:r.name,phone:r.phone||"",email:r.email||"",suburb:r.suburb||"",kind:r.kind||"",work:r.work||"",source:r.source||"",need:r.need||"",status:r.status,quoted:r.quoted==null?null:Number(r.quoted),invoiced:r.invoiced||"",paid:r.paid||"",notes:r.notes||"",notesHtml:r.notes_html||"",addedAt:r.added_at,followUps:{}};
+  const l={_id:r.id,date:r.date,name:r.name,phone:r.phone||"",email:r.email||"",suburb:r.suburb||"",kind:r.kind||"",work:r.work||"",source:r.source||"",need:r.need||"",status:r.status,quoted:r.quoted==null?null:Number(r.quoted),invoiced:r.invoiced||"",deposit_paid:r.deposit_paid||"",paid:r.paid||"",notes:r.notes||"",notesHtml:r.notes_html||"",addedAt:r.added_at,followUps:{}};
   return l;
 }
 function attachFollowUps(){
