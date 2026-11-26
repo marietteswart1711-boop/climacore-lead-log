@@ -405,7 +405,7 @@ function payRow(l,lid){
 function payTiles(live){
   const sum=(k,c)=>live.reduce((a,l)=>a+((!c||l[c]==="Yes")?payPos(l[k]):0),0);
   const di=sum("deposit_amount"), dp=sum("deposit_amount","deposit_paid"), fi=sum("final_amount"), fp=sum("final_amount","paid");
-  return [["Deposits invoiced",rand(di),"still to be paid "+rand(di-dp),false,1],["Deposits paid",rand(dp),"received",false,1],["Final invoices",rand(fi),"still to be paid "+rand(fi-fp),false,1],["Final invoices paid",rand(fp),"received",false,1]];
+  return [["Deposits invoiced",rand(di-dp),"invoiced, awaiting payment",false,1],["Deposits paid",rand(dp),"received",false,1],["Final invoices",rand(fi-fp),"invoiced, awaiting payment",false,1],["Final invoices paid",rand(fp),"received",false,1]];
 }
 function opt(list,v,blank){return (blank?`<option value=""${!v?" selected":""}></option>`:"")+list.map(x=>`<option${x===v?" selected":""}>${x}</option>`).join("")}
 function render(){
