@@ -399,7 +399,7 @@ function payGroup(l,label,[a,i,p,d]){
 }
 function hasPay(l,keys){return keys.some(k=>l[k]!=null&&l[k]!==""&&l[k]!=="No")}
 function payRow(l,lid){
-  if(l.status!=="Won"&&!hasPay(l,[...PAYK.dep,...PAYK.fin]))return "";
+  if(l.status!=="Won")return "";
   return `<tr class="payrow" data-id="${lid}"><td colspan="11"><div class="pays">${payGroup(l,"Deposit",PAYK.dep)}${payGroup(l,"Final invoice",PAYK.fin)}</div></td></tr>`;
 }
 function payTiles(live){
@@ -562,7 +562,7 @@ $("rows").addEventListener("change",e=>{
   if(el.dataset.k==="quoted"){let t=v.replace(/[^\d.,]/g,"");if(t.includes(",")&&!t.includes(".")&&/,\d{1,2}$/.test(t))t=t.replace(/,(?=\d{1,2}$)/,".");t=t.replace(/,/g,"");const n=parseFloat(t);v=isNaN(n)?null:Math.round(n*100)/100}
   if(el.dataset.k==="status")el.dataset.s=v;
   const patch={[el.dataset.k]:v}, pk=PAIR[el.dataset.k], cur=leads.find(x=>x._id===tr.dataset.id)||{};
-  if(pk){if(el.type==="checkbox"){if(v==="Yes"&&!cur[pk])patch[pk]=today()}else if(v&&cur[pk]!=="Yes")patch[pk]="Yes"}
+  if(pk){if(el.type==="checkbox"){if(v==="Yes"&&!cur[pk])patch[pk]=today();else if(v!=="Yes")patch[pk]=null}else if(v&&cur[pk]!=="Yes")patch[pk]="Yes"}
   save(tr.dataset.id,patch).then(()=>safeRender()).catch(()=>{});
 });
 async function addNote(tr){
