@@ -199,6 +199,7 @@ input.pay{width:18px;height:18px;accent-color:var(--won);cursor:pointer;margin:2
 .pg input.money{width:110px}
 .pg input.dt{width:132px;font-family:var(--f-body)}
 .stat.pay .v{font-size:20px}
+@media (min-width:900px){.strip{grid-template-columns:repeat(12,minmax(0,1fr))}.strip .stat{grid-column:span 2}.strip .stat.pay{grid-column:span 3}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
