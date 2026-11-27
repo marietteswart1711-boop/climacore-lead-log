@@ -152,6 +152,8 @@ select.status[data-s="Quoted"]{color:var(--quoted);background:var(--quoted-bg)}
 select.status[data-s="Won"]{color:var(--won);background:var(--won-bg)}
 select.status[data-s="Lost"]{color:var(--lost);background:var(--lost-bg)}
 select.status[data-s="Spam"]{color:var(--spam);background:var(--spam-bg)}
+select.status[data-s="Contacted"]{color:var(--new);background:var(--new-bg)}
+select.status[data-s="Deposit paid"],select.status[data-s="Balance paid"]{color:var(--won);background:var(--won-bg)}
 input.money{font-family:var(--f-mono);width:120px;text-align:right;font-variant-numeric:tabular-nums}
 .qlinks{display:flex;flex-direction:column;align-items:flex-end;gap:2px;margin-top:4px}
 .qlinks a,.qdocs a{color:var(--accent);font:600 12px var(--f-body);text-decoration:none;white-space:nowrap}
@@ -282,7 +284,8 @@ input.pay{width:18px;height:18px;accent-color:var(--won);cursor:pointer;margin:2
 
 <script>
 (function(){
-const STATUSES=["New","Quoted","Won","Lost","Spam"];
+const STATUSES=["New","Contacted","Quoted","Won","Deposit paid","Balance paid","Lost","Spam"];
+const WONSET=["Won","Deposit paid","Balance paid"];const isWon=l=>WONSET.includes(l.status);
 const SOURCES=["Google ad","Website form","Facebook","Phone call","Walk-in","Referral","Repeat customer","Other"];
 const SRC_COL={"Google ad":"#0b6fa4","Website form":"#2aa6a0","Facebook":"#5b6ad0","Phone call":"#c2771c","Walk-in":"#8a5a44","Referral":"#7aa33a","Repeat customer":"#14212b","Other":"#9aa6af"};
 let user=null, myId=null, sb=null, teamNames={}, fuRows=[], leadRows=[], noteRows=[], quoteRows=[];
@@ -305,13 +308,13 @@ function stats(){
   const pool=leads.filter(inMonth);
   const live=pool.filter(l=>l.status!=="Spam");
   const c=s=>live.filter(l=>l.status===s).length;
-  const won=c("Won"),lost=c("Lost");
+  const won=live.filter(isWon).length,lost=c("Lost");
   const wk=new Date(Date.now()-6*864e5).toISOString().slice(0,10);
   const quotedSum=live.reduce((a,l)=>a+(+l.quoted>0?+l.quoted:0),0);
-  const wonSum=live.filter(l=>l.status==="Won").reduce((a,l)=>a+(+l.quoted||0),0);
-  const owed=live.filter(l=>l.status==="Won"&&l.invoiced==="Yes"&&l.paid!=="Yes").reduce((a,l)=>a+(+l.quoted||0),0);
+  const wonSum=live.filter(isWon).reduce((a,l)=>a+(+l.quoted||0),0);
+  const owed=live.filter(l=>isWon(l)&&l.invoiced==="Yes"&&l.paid!=="Yes").reduce((a,l)=>a+(+l.quoted||0),0);
   const items=[
-    ["Need a quote",c("New"),"status New",true],
+    ["Need a quote",c("New")+c("Contacted"),"New or Contacted",true],
     ["Quotes out",c("Quoted"),"waiting on customer"],
     ["Jobs won",won,won||lost?Math.round(won/(won+lost)*100)+"% win rate":"no decisions yet"],
     month?["Enquiries",live.length,"in "+monthName(month)]:["This week",live.filter(l=>l.date>=wk).length,"enquiries, last 7 days"],
@@ -335,7 +338,7 @@ function ads(){
   const pool=leads.filter(l=>inMonth(l)&&l.status!=="Spam"&&(!month?sel.includes((l.date||"").slice(0,7)):true));
   const ad=pool.filter(l=>l.source==="Google ad");
   const online=pool.filter(l=>l.source==="Google ad"||l.source==="Website form");
-  const wonOnline=online.filter(l=>l.status==="Won");
+  const wonOnline=online.filter(isWon);
   const per=(n)=>n?rand(cost/n):"–";
   const cia=sel.reduce((a,m)=>a+(spend[m]?+(spend[m].campaigns||{})["Commercial & Industrial"]||0:0),0);
   const res=sel.reduce((a,m)=>a+(spend[m]?+(spend[m].campaigns||{})["Residential Aircon"]||0:0),0);
@@ -399,7 +402,7 @@ function payGroup(l,label,[a,i,p,d]){
 }
 function hasPay(l,keys){return keys.some(k=>l[k]!=null&&l[k]!==""&&l[k]!=="No")}
 function payRow(l,lid){
-  if(l.status!=="Won")return "";
+  if(!isWon(l))return "";
   return `<tr class="payrow" data-id="${lid}"><td colspan="11"><div class="pays">${payGroup(l,"Deposit",PAYK.dep)}${payGroup(l,"Final invoice",PAYK.fin)}</div></td></tr>`;
 }
 function payTiles(live){
@@ -417,7 +420,7 @@ function render(){
   const fresh=new Date(Date.now()-1*864e5).toISOString();
   const uids=new Set();
   $("rows").innerHTML=rows.map(l=>{
-    const owed=l.status==="Won"&&l.invoiced==="Yes"&&l.paid!=="Yes";
+    const owed=isWon(l)&&l.invoiced==="Yes"&&l.paid!=="Yes";
     const fus=fuList(l); fus.forEach(f=>f.by&&uids.add(f.by));
     const nts=noteList(l);
     const last=fus[0];
@@ -563,6 +566,7 @@ $("rows").addEventListener("change",e=>{
   if(el.dataset.k==="status")el.dataset.s=v;
   const patch={[el.dataset.k]:v}, pk=PAIR[el.dataset.k], cur=leads.find(x=>x._id===tr.dataset.id)||{};
   if(pk){if(el.type==="checkbox"){if(v==="Yes"&&!cur[pk])patch[pk]=today();else if(v!=="Yes")patch[pk]=null}else if(v&&cur[pk]!=="Yes")patch[pk]="Yes"}
+  if(el.dataset.k==="status"){if(v==="Deposit paid"&&cur.deposit_paid!=="Yes"){patch.deposit_paid="Yes";if(!cur.deposit_paid_date)patch.deposit_paid_date=today()}if(v==="Balance paid"&&cur.paid!=="Yes"){patch.paid="Yes";if(!cur.final_paid_date)patch.final_paid_date=today()}}
   save(tr.dataset.id,patch).then(()=>safeRender()).catch(()=>{});
 });
 async function addNote(tr){
